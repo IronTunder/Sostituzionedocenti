@@ -1,4 +1,3 @@
-//Momo
 public class Classe {
 
 }

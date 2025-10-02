@@ -1,4 +1,0 @@
-//Skibidi
-public class Gestore {
-
-}
