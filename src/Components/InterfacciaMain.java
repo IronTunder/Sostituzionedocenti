@@ -33,7 +33,7 @@ public class InterfacciaMain extends JFrame {
         JFrame finestra = new JFrame();
 
         String[] docenti = {}; //da sistemare
-        JList<String> listaDocenti = new JList<>();
+        JList<String> listaDocenti = new JList<>(docenti);
 
         finestra.setLayout(new BorderLayout());
 
@@ -53,7 +53,12 @@ public class InterfacciaMain extends JFrame {
         finestra.setVisible(true);
 
         avvia.addActionListener(e -> {
-            //java.util.List<String> //...
+            java.util.List<String> selezionati = listaDocenti.getSelectedValuesList();
+            if (selezionati.isEmpty()) {
+                JOptionPane.showMessageDialog(finestra, "Nessun docente selezionato");
+            } else {
+                JOptionPane.showMessageDialog(finestra, "Avvio sostituzione per " + selezionati);
+            }
         });
 
     }
