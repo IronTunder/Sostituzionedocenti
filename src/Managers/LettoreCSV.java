@@ -1,6 +1,5 @@
 package Managers;
 
-import Entities.Lezione;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
@@ -10,8 +9,9 @@ import java.io.IOException;
 import java.util.List;
 
 public class LettoreCSV {
+     GestoreDati gestoreDati = new GestoreDati();
 
-    public static void leggiFile(String path) throws IOException, CsvException {
+    public void leggiFile(String path) throws IOException, CsvException {
         CSVReader reader = new CSVReaderBuilder(new FileReader(path))
                 .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
                 .build();
@@ -28,8 +28,8 @@ public class LettoreCSV {
             String giorno = entry[6].trim();
             String oraInizio = entry[7].trim();
 
-            Lezione lezione = new Lezione((int) Double.parseDouble(numero), durata, materia, cognomi, classe, coDocente, giorno, oraInizio);
-            System.out.println(lezione);
+            gestoreDati.creaLezione((int) Double.parseDouble(numero), durata, materia, cognomi, classe, coDocente, giorno, oraInizio);
+            System.out.println(cognomi);
         }
         reader.close();
     }

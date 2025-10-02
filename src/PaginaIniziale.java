@@ -2,6 +2,7 @@ import Managers.LettoreCSV;
 import com.opencsv.exceptions.CsvException;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
 import java.awt.event.*;
@@ -45,15 +46,17 @@ public class PaginaIniziale extends javax.swing.JFrame {
             {
                 chiudiFrame();
                 JFileChooser fileChooser = new JFileChooser();
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("File CSV", "csv");
+                fileChooser.setFileFilter(filter);
                 int result = fileChooser.showOpenDialog(null);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File fileSelezionato = fileChooser.getSelectedFile();
+                    LettoreCSV lettoreCSV = new LettoreCSV();
                     try {
-                        LettoreCSV.leggiFile(fileSelezionato.getAbsolutePath());
+                        lettoreCSV.leggiFile(fileSelezionato.getAbsolutePath());
                     } catch (IOException | CsvException ex) {
                         throw new RuntimeException(ex);
                     }
-
                 }
                 else {
                     System.out.println("Operazione annullata.");
