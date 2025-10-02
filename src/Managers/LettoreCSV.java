@@ -29,8 +29,18 @@ public class LettoreCSV {
             String oraInizio = entry[7].trim();
 
             gestoreDati.creaLezione((int) Double.parseDouble(numero), durata, materia, cognomi, classe, coDocente, giorno, oraInizio);
-            System.out.println(cognomi);
+            String[] cognomiArray = cognomi.split(";");
+            for(int i = 0; i < cognomiArray.length; i++){
+                gestoreDati.creaDocente(cognomiArray[i].trim());
+            }
+            gestoreDati.creaClasse(classe);
         }
+        System.out.println("=====================CLASSI======================");
+        gestoreDati.getListaClassi().forEach(System.out::println);
+        System.out.println("=====================DOCENTI======================");
+        gestoreDati.getListaDocenti().forEach(System.out::println);
+        System.out.println("=====================LEZIONI======================");
+        gestoreDati.getListaLezioni().forEach(System.out::println);
         reader.close();
     }
 }
