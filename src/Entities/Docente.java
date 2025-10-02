@@ -1,15 +1,14 @@
 package Entities;
 
-public class Docente {
 
+public class Docente {
     private String cognome;
 
-    public Docente(String cognome) {
+    public Docente(String cognome){
         this.cognome = cognome;
     }
 
     public String getCognome() {
         return cognome;
     }
-
 }
