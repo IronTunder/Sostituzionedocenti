@@ -11,4 +11,11 @@ public class Docente {
     public String getCognome() {
         return cognome;
     }
+
+    @Override
+    public String toString() {
+        return "Docente{" +
+                "cognome='" + cognome + '\'' +
+                '}';
+    }
 }
