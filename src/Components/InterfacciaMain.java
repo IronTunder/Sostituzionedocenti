@@ -16,7 +16,7 @@ public class InterfacciaMain extends JFrame {
         JButton bAggiornazione = new JButton("Aggiorna file");
         panel.add(bAggiornazione);
 
-        JButton bGestioneOre = new JButton("Gestione Ore da recuperare");
+        JButton bGestioneOre = new JButton("Gestione ore da recuperare");
         panel.add(bGestioneOre);
 
         add(panel, BorderLayout.CENTER);
