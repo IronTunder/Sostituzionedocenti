@@ -1,3 +1,5 @@
+package Entities;
+
 public class Lezione {
     private String durata;
     private String materia;
@@ -89,7 +91,7 @@ public class Lezione {
 
     @Override
     public String toString() {
-        return "Lezione{" +
+        return "Entities.Lezione{" +
                 "numero=" + numero +
                 "  durata='" + durata + '\'' +
                 ", materia='" + materia + '\'' +

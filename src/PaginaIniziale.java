@@ -1,9 +1,14 @@
+import Managers.LettoreCSV;
+import com.opencsv.exceptions.CsvException;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.awt.event.*;
+import java.io.IOException;
 
 public class PaginaIniziale extends javax.swing.JFrame {
+
     public PaginaIniziale() {
         this.setSize(500, 400);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -33,7 +38,6 @@ public class PaginaIniziale extends javax.swing.JFrame {
             }
         });
 
-
         selezionaFile.addActionListener(new ActionListener()
         {
             @Override
@@ -44,7 +48,12 @@ public class PaginaIniziale extends javax.swing.JFrame {
                 int result = fileChooser.showOpenDialog(null);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File fileSelezionato = fileChooser.getSelectedFile();
-                    System.out.println("Hai scelto: " + fileSelezionato.getAbsolutePath());
+                    try {
+                        LettoreCSV.leggiFile(fileSelezionato.getAbsolutePath());
+                    } catch (IOException | CsvException ex) {
+                        throw new RuntimeException(ex);
+                    }
+
                 }
                 else {
                     System.out.println("Operazione annullata.");
@@ -56,5 +65,9 @@ public class PaginaIniziale extends javax.swing.JFrame {
 
     private void chiudiFrame(){
         this.dispose();
+    }
+
+    public static void main(String[] args) {
+        new PaginaIniziale();
     }
 }

@@ -1,3 +1,6 @@
+package Managers;
+
+import Entities.Lezione;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
@@ -7,8 +10,9 @@ import java.io.IOException;
 import java.util.List;
 
 public class LettoreCSV {
-    public void leggiFile() throws IOException, CsvException {
-        CSVReader reader = new CSVReaderBuilder(new FileReader("OrarioDocenti_Fake.csv"))
+
+    public static void leggiFile(String path) throws IOException, CsvException {
+        CSVReader reader = new CSVReaderBuilder(new FileReader(path))
                 .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
                 .build();
         List<String[]> entries = reader.readAll();
