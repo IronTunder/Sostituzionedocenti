@@ -1,3 +1,5 @@
+import Components.InterfacciaMain;
+import Managers.GestoreDati;
 import Managers.LettoreCSV;
 import com.opencsv.exceptions.CsvException;
 
@@ -10,7 +12,7 @@ import java.awt.event.*;
 import java.io.IOException;
 
 public class PaginaIniziale extends javax.swing.JFrame {
-
+    private GestoreDati gestoreDati = new GestoreDati();
     public PaginaIniziale() {
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -25,6 +27,7 @@ public class PaginaIniziale extends javax.swing.JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout());
         this.setLocationRelativeTo(null);
+        this.setResizable(false);
 
         this.getContentPane().setBackground(new Color(245, 250, 250, 255));
 
@@ -60,7 +63,6 @@ public class PaginaIniziale extends javax.swing.JFrame {
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                chiudiFrame();
                 JFileChooser fileChooser = new JFileChooser();
                 FileNameExtensionFilter filter = new FileNameExtensionFilter("File CSV", "csv");
                 fileChooser.setFileFilter(filter);
@@ -69,10 +71,12 @@ public class PaginaIniziale extends javax.swing.JFrame {
                     File fileSelezionato = fileChooser.getSelectedFile();
                     LettoreCSV lettoreCSV = new LettoreCSV();
                     try {
-                        lettoreCSV.leggiFile(fileSelezionato.getAbsolutePath());
+                        lettoreCSV.leggiFile(fileSelezionato.getAbsolutePath(),gestoreDati);
                     } catch (IOException | CsvException ex) {
                         throw new RuntimeException(ex);
                     }
+                    chiudiFrame();
+                    new InterfacciaMain(gestoreDati.getListaClassi());
                 }
                 else {
                     System.out.println("Operazione annullata.");

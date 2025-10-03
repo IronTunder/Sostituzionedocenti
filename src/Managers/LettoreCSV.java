@@ -9,9 +9,8 @@ import java.io.IOException;
 import java.util.List;
 
 public class LettoreCSV {
-     GestoreDati gestoreDati = new GestoreDati();
 
-    public void leggiFile(String path) throws IOException, CsvException {
+    public void leggiFile(String path,GestoreDati gestoreDati) throws IOException, CsvException {
         CSVReader reader = new CSVReaderBuilder(new FileReader(path))
                 .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
                 .build();
@@ -30,12 +29,13 @@ public class LettoreCSV {
 
             gestoreDati.creaLezione((int) Double.parseDouble(numero), durata, materia, cognomi, classe, coDocente, giorno, oraInizio);
             String[] cognomiArray = cognomi.split(";");
-            for(int i = 0; i < cognomiArray.length; i++){
-                gestoreDati.creaDocente(cognomiArray[i].trim());
+            for (String s : cognomiArray) {
+                gestoreDati.creaDocente(s.trim());
             }
             gestoreDati.creaClasse(classe);
             gestoreDati.creaOrarioClasse(classe);
         }
+        gestoreDati.organizzaClassi();
         gestoreDati.getListaClassi().forEach(System.out::println);
         reader.close();
     }

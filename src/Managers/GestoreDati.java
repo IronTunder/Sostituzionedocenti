@@ -5,6 +5,7 @@ import Entities.Docente;
 import Entities.Lezione;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class GestoreDati {
 
@@ -39,20 +40,27 @@ public class GestoreDati {
         listaClassi.add(new Classe(classe,this));
     }
 
+    public void organizzaClassi(){
+        listaClassi.sort(Comparator.comparing(Classe::getSezione));
+    }
+
     public void creaOrarioClasse(String classe){
-        Classe classeTemp = new Classe(classe,this);
+        Classe classeTemp = null;
         for(Classe classe1 : listaClassi){
             if(classe1.getSezione().equals(classe)){
                 classeTemp = classe1;
                 break;
             }
         }
+        if(classeTemp == null)
+            return;
         for(Lezione lezione : listaLezioni){
             if(lezione.getClasse().equals(classeTemp.getSezione())){
                 classeTemp.aggiungiLezioneEDocente(lezione);
             }
         }
     }
+
 
     public ArrayList<Docente> getListaDocenti() {
         return listaDocenti;

@@ -20,7 +20,14 @@ public class Classe {
         if(this.lezioni.contains(lezione)){
             return;
         }
-        this.lezioni.add(lezione);
+//        if(Double.parseDouble(lezione.getDurata().replace('h','.')) == 2.0){
+//            this.lezioni.add(lezione);
+//            this.lezioni.add(lezione);
+//        }
+        else{
+            this.lezioni.add(lezione);
+        }
+
 
         String[] cognomiArray = lezione.getCognomi();
 
