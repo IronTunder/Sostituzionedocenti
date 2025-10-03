@@ -36,9 +36,23 @@ public class GestoreDati {
                 return;
             }
         }
-        listaClassi.add(new Classe(classe));
+        listaClassi.add(new Classe(classe,this));
     }
 
+    public void creaOrarioClasse(String classe){
+        Classe classeTemp = new Classe(classe,this);
+        for(Classe classe1 : listaClassi){
+            if(classe1.getSezione().equals(classe)){
+                classeTemp = classe1;
+                break;
+            }
+        }
+        for(Lezione lezione : listaLezioni){
+            if(lezione.getClasse().equals(classeTemp.getSezione())){
+                classeTemp.aggiungiLezioneEDocente(lezione);
+            }
+        }
+    }
 
     public ArrayList<Docente> getListaDocenti() {
         return listaDocenti;

@@ -7,6 +7,7 @@ public class Docente {
     private String cognome;
     private ArrayList<Classe> listaClassi;
 
+
     public Docente(String cognome){
         this.cognome = cognome;
     }
