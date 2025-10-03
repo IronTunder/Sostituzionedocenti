@@ -12,7 +12,6 @@ import java.io.IOException;
 public class PaginaIniziale extends javax.swing.JFrame {
 
     public PaginaIniziale() {
-        // 🔹 Attiva Nimbus Look & Feel (più moderno)
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -27,8 +26,7 @@ public class PaginaIniziale extends javax.swing.JFrame {
         this.setLayout(new BorderLayout());
         this.setLocationRelativeTo(null);
 
-        // 🔹 Sfondo finestra
-        this.getContentPane().setBackground(new Color(245, 245, 250));
+        this.getContentPane().setBackground(new Color(245, 250, 250, 255));
 
         JLabel scrittaIniziale = new JLabel("BENVENUTO NEL PROGRAMMA", SwingConstants.CENTER);
         scrittaIniziale.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -42,7 +40,6 @@ public class PaginaIniziale extends javax.swing.JFrame {
         JButton uscita = new JButton("USCITA");
         JButton selezionaFile = new JButton("SELEZIONE FILE");
 
-        // 🔹 Stile pulsanti
         Dimension dimensioneBottoni = new Dimension(200, 40);
         uscita.setPreferredSize(dimensioneBottoni);
         selezionaFile.setPreferredSize(dimensioneBottoni);
@@ -85,7 +82,6 @@ public class PaginaIniziale extends javax.swing.JFrame {
         this.setVisible(true);
     }
 
-    // 🔹 Metodo per personalizzare i bottoni
     private void personalizzaBottone(JButton bottone, Color coloreSfondo, Color coloreTesto) {
         bottone.setFocusPainted(false);
         bottone.setBackground(coloreSfondo);
