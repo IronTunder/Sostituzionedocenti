@@ -22,7 +22,7 @@ public class Classe {
         }
         this.lezioni.add(lezione);
 
-        String[] cognomiArray = lezione.getCognomi().split(";");
+        String[] cognomiArray = lezione.getCognomi();
 
         for(String cognome : cognomiArray){
             boolean docenteGiaPresente = false;

@@ -3,7 +3,7 @@ package Entities;
 public class Lezione {
     private String durata;
     private String materia;
-    private String cognomi;
+    private String[] cognomi;
     private String classe;
     private String coDocente;
     private String giorno;
@@ -14,7 +14,7 @@ public class Lezione {
         this.numero = numero;
         this.durata = durata;
         this.materia = materia;
-        this.cognomi = cognomi;
+        this.cognomi = cognomi.split(";");
         this.classe = classe;
         this.coDocente = coDocente;
         this.giorno = giorno;
@@ -53,13 +53,7 @@ public class Lezione {
         this.classe = classe;
     }
 
-    public String getCognomi() {
-        return cognomi;
-    }
-
-    public void setCognomi(String cognomi) {
-        this.cognomi = cognomi;
-    }
+    public String[] getCognomi() {return cognomi;}
 
     public String getCoDocente() {
         return coDocente;
