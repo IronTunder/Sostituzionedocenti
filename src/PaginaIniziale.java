@@ -87,7 +87,7 @@ public class PaginaIniziale extends javax.swing.JFrame {
         bottone.setBackground(coloreSfondo);
         bottone.setForeground(coloreTesto);
         bottone.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        bottone.setBorder(new LineBorder(new Color(230, 230, 230), 2, true)); // bordo arrotondato
+        bottone.setBorder(new LineBorder(new Color(230, 230, 230, 0), 2, true)); // bordo arrotondato
         bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
