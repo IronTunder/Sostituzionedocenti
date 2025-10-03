@@ -40,9 +40,10 @@ public class InterfacciaMain extends JFrame {
         bAggiornazione.setPreferredSize(dimensioneBottoni);
         bGestioneOre.setPreferredSize(dimensioneBottoni);
 
-        personalizzaBottone(bSostituzione, new Color(70, 130, 180), Color.WHITE);
-        personalizzaBottone(bAggiornazione, new Color(46, 139, 87), Color.WHITE);
-        personalizzaBottone(bGestioneOre, new Color(255, 140, 0), Color.WHITE);
+        // ✅ Colori più sobri
+        personalizzaBottone(bSostituzione, new Color(100, 149, 237), Color.WHITE);   // blu tenue
+        personalizzaBottone(bAggiornazione, new Color(82, 170, 110), Color.WHITE);   // verde tenue
+        personalizzaBottone(bGestioneOre, new Color(230, 150, 60), Color.WHITE);     // arancione smorzato
 
         pannelloCentro.add(bSostituzione);
         pannelloCentro.add(bAggiornazione);
