@@ -21,10 +21,6 @@ public class Lezione {
         this.oraInizio = oraInizio;
     }
 
-    private void assegnaLezioniAClasse() {
-
-    }
-
     public int getNumero() {
         return numero;
     }

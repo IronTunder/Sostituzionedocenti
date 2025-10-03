@@ -34,13 +34,9 @@ public class LettoreCSV {
                 gestoreDati.creaDocente(cognomiArray[i].trim());
             }
             gestoreDati.creaClasse(classe);
+            gestoreDati.creaOrarioClasse(classe);
         }
-        System.out.println("=====================CLASSI======================");
         gestoreDati.getListaClassi().forEach(System.out::println);
-        System.out.println("=====================DOCENTI======================");
-        gestoreDati.getListaDocenti().forEach(System.out::println);
-        System.out.println("=====================LEZIONI======================");
-        gestoreDati.getListaLezioni().forEach(System.out::println);
         reader.close();
     }
 }
