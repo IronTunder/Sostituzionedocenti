@@ -1,16 +1,17 @@
 package Entities;
 
 public class Lezione {
-    private String durata;
-    private String materia;
-    private String[] cognomi;
-    private String classe;
-    private String coDocente;
-    private String giorno;
-    private String oraInizio;
-    private int numero;
+    private final int numero;
+    private final String durata;
+    private final String materia;
+    private final String[] cognomi;
+    private final String classe;
+    private final String coDocente;
+    private final String giorno;
+    private final String oraInizio;
 
-    public Lezione(int numero,String durata, String materia, String cognomi, String classe, String coDocente, String giorno, String oraInizio) {
+    public Lezione(int numero, String durata, String materia, String cognomi,
+                   String classe, String coDocente, String giorno, String oraInizio) {
         this.numero = numero;
         this.durata = durata;
         this.materia = materia;
@@ -21,75 +22,36 @@ public class Lezione {
         this.oraInizio = oraInizio;
     }
 
-    public int getNumero() {
-        return numero;
+    
+    public int getNumero() { return numero; }
+    public String getDurata() { return durata; }
+    public String getMateria() { return materia; }
+    public String[] getCognomi() { return cognomi.clone(); } 
+    public String getClasse() { return classe; }
+    public String getCoDocente() { return coDocente; }
+    public String getGiorno() { return giorno; }
+    public String getOraInizio() { return oraInizio; }
+
+    
+    public boolean isBioraria() {
+        return "2h".equals(durata) || "2.0".equals(durata);
     }
 
-    public void setNumero(int numero) {
-        this.numero = numero;
+    public String getCognomiFormattati() {
+        return String.join(", ", cognomi);
     }
 
-    public String getDurata() {
-        return durata;
-    }
-
-    public void setDurata(String durata) {
-        this.durata = durata;
-    }
-
-    public String getMateria() {
-        return materia;
-    }
-
-    public void setMateria(String materia) {
-        this.materia = materia;
-    }
-
-    public String getClasse() {
-        return classe;
-    }
-
-    public void setClasse(String classe) {
-        this.classe = classe;
-    }
-
-    public String[] getCognomi() {return cognomi;}
-
-    public String getCoDocente() {
-        return coDocente;
-    }
-
-    public void setCoDocente(String coDocente) {
-        this.coDocente = coDocente;
-    }
-
-    public String getGiorno() {
-        return giorno;
-    }
-
-    public void setGiorno(String giorno) {
-        this.giorno = giorno;
-    }
-
-    public String getOraInizio() {
-        return oraInizio;
-    }
-
-    public void setOraInizio(String oraInizio) {
-        this.oraInizio = oraInizio;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Lezione lezione = (Lezione) obj;
+        return numero == lezione.numero;
     }
 
     @Override
     public String toString() {
-        return "Entities.Lezione{" +
-                "numero=" + numero +
-                "  durata='" + durata + '\'' +
-                ", materia='" + materia + '\'' +
-                ", cognomi='" + cognomi + '\'' +
-                ", classe='" + classe + '\'' +
-                ", coDocente='" + coDocente + '\'' +
-                ", giorno='" + giorno + '\'' +
-                ", oraInizio='" + oraInizio + '\'' +
-                '}';
+        return String.format("Lezione %d: %s - %s (%s) - %s",
+                numero, materia, getCognomiFormattati(), classe, giorno);
     }
 }

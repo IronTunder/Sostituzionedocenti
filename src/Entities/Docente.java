@@ -1,94 +1,81 @@
 package Entities;
 
-
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class Docente {
-    private String cognome;
-    private ArrayList<Classe> listaClassi;
-    private ArrayList<String> listaMaterie;
-    private ArrayList<String> listaOrari;
+    private final String cognome;
+    private final List<Classe> listaClassi;
+    private final List<String> listaMaterie;
+    private final List<String> listaOrari;
 
-
-    public Docente(String cognome){
-        this.cognome = cognome;
+    public Docente(String cognome) {
+        this.cognome = Objects.requireNonNull(cognome, "Cognome non può essere null");
+        this.listaClassi = new ArrayList<>();
+        this.listaMaterie = new ArrayList<>();
+        this.listaOrari = new ArrayList<>();
     }
 
-    public String getCognome() {
-        return cognome;
-    }
+    
+    public String getCognome() { return cognome; }
+    public List<Classe> getListaClassi() { return new ArrayList<>(listaClassi); }
+    public List<String> getListaMaterie() { return new ArrayList<>(listaMaterie); }
+    public List<String> getListaOrari() { return new ArrayList<>(listaOrari); }
 
-    public ArrayList<Classe> getListaClassi() {
-        return listaClassi;
-    }
-
-    public ArrayList<String> getListaMaterie() {
-        return listaMaterie;
-    }
-
-    public ArrayList<String> getListaOrari() {
-        return listaOrari;
-    }
-
-    public void aggiungiClasse(Classe classe){
-        for(Classe c : listaClassi){
-            if(c.equals(classe)){
-            return;
-            }
-        }
-        listaClassi.add(classe);
-    }
-
-    public void aggiungiMaterie(String materia)
-    {
-        for(String c : listaMaterie){
-            if(c.equals(materia)){
-                return;
-            }
-        }
-        listaMaterie.add(materia);
-    }
-
-    public void aggiungiOrari(String orario)
-    {
-        for(String c : listaOrari){
-            if(c.equals(orario)){
-                return;
-            }
-        }
-        listaOrari.add(orario);
-    }
-
-    public void rimuoviClasse(String classe)
-    {
-        for(Classe c : listaClassi){
-            if(c.equals(classe)){
-                listaClassi.remove(classe);
-            }
-        }
-    }
-    public void rimuoviMaterie(String materia)
-    {
-        for(String c : listaMaterie){
-            if(c.equals(materia)){
-                listaMaterie.remove(materia);
-            }
-        }
-    }
-    public void rimuoviOrario(String orario)
-    {
-        for(String c : listaOrari){
-            if(c.equals(orario)){
-                listaOrari.remove(orario);
-            }
+    
+    public void aggiungiClasse(Classe classe) {
+        if (classe != null && !listaClassi.contains(classe)) {
+            listaClassi.add(classe);
         }
     }
 
+    public void aggiungiMateria(String materia) {
+        if (materia != null && !listaMaterie.contains(materia)) {
+            listaMaterie.add(materia);
+        }
+    }
+
+    public void aggiungiOrario(String orario) {
+        if (orario != null && !listaOrari.contains(orario)) {
+            listaOrari.add(orario);
+        }
+    }
+
+    
+    public void rimuoviClasse(Classe classe) {
+        listaClassi.remove(classe);
+    }
+
+    public void rimuoviMateria(String materia) {
+        listaMaterie.remove(materia);
+    }
+
+    public void rimuoviOrario(String orario) {
+        listaOrari.remove(orario);
+    }
+
+    
+    public boolean insegnaInClasse(String sezione) {
+        return listaClassi.stream()
+                .anyMatch(classe -> classe.getSezione().equals(sezione));
+    }
+
+    public boolean insegnaMateria(String materia) {
+        return listaMaterie.contains(materia);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Docente docente = (Docente) obj;
+        return cognome.equals(docente.cognome);
+    }
 
     @Override
     public String toString() {
-        return "Docente{" +
-                "cognome='" + cognome + '\'' +
-                '}';
+        return String.format("Docente: %s (Classi: %d, Materie: %d)",
+                cognome, listaClassi.size(), listaMaterie.size());
     }
 }

@@ -3,84 +3,75 @@ package Entities;
 import Managers.GestoreDati;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Classe {
-
-    private ArrayList<Lezione> lezioni = new ArrayList<>();
-    private ArrayList<Docente> docenti = new ArrayList<>();
-    private String sezione;
-    private GestoreDati gestore;
+    private final ArrayList<Lezione> lezioni;
+    private final ArrayList<Docente> docenti;
+    private final String sezione;
+    private final GestoreDati gestore;
 
     public Classe(String sezione, GestoreDati gestore) {
-        this.sezione = sezione;
-        this.gestore = gestore;
+        this.sezione = Objects.requireNonNull(sezione, "Sezione non può essere null");
+        this.gestore = Objects.requireNonNull(gestore, "Gestore non può essere null");
+        this.lezioni = new ArrayList<>();
+        this.docenti = new ArrayList<>();
     }
 
-    public void aggiungiLezioneEDocente(Lezione lezione){
-        if(this.lezioni.contains(lezione)){
-            return;
-        }
-//        if(Double.parseDouble(lezione.getDurata().replace('h','.')) == 2.0){
-//            this.lezioni.add(lezione);
-//            this.lezioni.add(lezione);
-//        }
-        else{
-            this.lezioni.add(lezione);
-        }
+    public void aggiungiLezioneEDocente(Lezione lezione) {
+        if (lezione == null || lezioni.contains(lezione)) return;
 
+        lezioni.add(lezione);
+        aggiungiDocentiDaLezione(lezione);
+    }
 
-        String[] cognomiArray = lezione.getCognomi();
-
-        for(String cognome : cognomiArray){
-            boolean docenteGiaPresente = false;
-
-
-            for(Docente docente : this.docenti){
-                if(docente.getCognome().equals(cognome)){
-                    docenteGiaPresente = true;
-                    break;
-                }
-            }
-
-            if(!docenteGiaPresente){
-                for(Docente docente : gestore.getListaDocenti()){
-                    if(docente.getCognome().equals(cognome)){
-                        this.docenti.add(docente);
-                        break;
-                    }
-                }
+    private void aggiungiDocentiDaLezione(Lezione lezione) {
+        for (String cognome : lezione.getCognomi()) {
+            Docente docente = gestore.getDocenteByCognome(cognome);
+            if (docente != null && !docenti.contains(docente)) {
+                docenti.add(docente);
+                docente.aggiungiClasse(this);
+                docente.aggiungiMateria(lezione.getMateria());
             }
         }
     }
 
-    public ArrayList<Lezione> getLezioni() {
-        return lezioni;
+    
+    public ArrayList<Lezione> getLezioniPerGiorno(String giorno) {
+        return lezioni.stream()
+                .filter(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno))
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+
     }
 
-    public String getSezione() {
-        return sezione;
+    public ArrayList<Docente> getDocentiPerMateria(String materia) {
+        return docenti.stream()
+                .filter(docente -> docente.getListaMaterie().contains(materia))
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
-    public ArrayList<Docente> getDocenti() {
-        return docenti;
+    public boolean haDocente(String cognomeDocente) {
+        return docenti.stream()
+                .anyMatch(docente -> docente.getCognome().equals(cognomeDocente));
     }
+
+    
+    public ArrayList<Lezione> getLezioni() { return new ArrayList<>(lezioni); }
+    public String getSezione() { return sezione; }
+    public ArrayList<Docente> getDocenti() { return new ArrayList<>(docenti); }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Classe classe = (Classe) obj;
+        return sezione.equals(classe.sezione);
+    }
+
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Classe: ").append(sezione).append("\n");
-
-        sb.append("Lezioni:\n");
-        for (Lezione lezione : lezioni) {
-            sb.append("  - ").append(lezione.toString()).append("\n");
-        }
-
-        sb.append("Docenti:\n");
-        for (Docente docente : docenti) {
-            sb.append("  - ").append(docente.toString()).append("\n");
-        }
-
-        return sb.toString();
+        return String.format("Classe %s (%d lezioni, %d docenti)",
+                sezione, lezioni.size(), docenti.size());
     }
-
 }

@@ -4,102 +4,206 @@ import Managers.LettoreCSV;
 import com.opencsv.exceptions.CsvException;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
-import java.awt.event.*;
 import java.io.IOException;
 
-public class PaginaIniziale extends javax.swing.JFrame {
+public class PaginaIniziale extends JFrame {
     private GestoreDati gestoreDati = new GestoreDati();
-    public PaginaIniziale() {
-        try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (Exception ignored) {}
 
-        this.setSize(500, 200);
+    
+    private final Color COLORE_SFONDO = new Color(248, 250, 252);
+    private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
+    private final Color COLORE_SECONDARIO = new Color(46, 139, 87);
+    private final Color COLORE_TESTO = new Color(0, 0, 0);
+
+    public PaginaIniziale() {
+        inizializzaLookAndFeel();
+        inizializzaUI();
+    }
+
+    private void inizializzaLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {}
+    }
+
+    private void inizializzaUI() {
+        configuraFrame();
+        aggiungiComponentiUI();
+        this.setVisible(true);
+    }
+
+    private void configuraFrame() {
+        this.setTitle("Gestione Orario Scolastico - Avvio");
+        this.setSize(500, 300);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout());
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        this.getContentPane().setBackground(COLORE_SFONDO);
+    }
 
-        this.getContentPane().setBackground(new Color(245, 250, 250, 255));
+    private void aggiungiComponentiUI() {
+        
+        JPanel pannelloPrincipale = new JPanel(new BorderLayout(0, 20));
+        pannelloPrincipale.setBackground(COLORE_SFONDO);
+        pannelloPrincipale.setBorder(new EmptyBorder(40, 50, 40, 50));
+        this.add(pannelloPrincipale, BorderLayout.CENTER);
 
-        JLabel scrittaIniziale = new JLabel("BENVENUTO NEL PROGRAMMA", SwingConstants.CENTER);
-        scrittaIniziale.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        scrittaIniziale.setForeground(new Color(60, 60, 60));
-        this.add(scrittaIniziale, BorderLayout.CENTER);
+        
+        pannelloPrincipale.add(creaHeader(), BorderLayout.NORTH);
 
-        JPanel pannelloSud = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        pannelloSud.setBackground(new Color(245, 245, 250)); // stesso colore dello sfondo
-        this.add(pannelloSud, BorderLayout.SOUTH);
+        
+        pannelloPrincipale.add(creaIstruzioni(), BorderLayout.CENTER);
 
-        JButton uscita = new JButton("USCITA");
-        JButton selezionaFile = new JButton("SELEZIONE FILE");
+        
+        pannelloPrincipale.add(creaPannelloPulsanti(), BorderLayout.SOUTH);
+    }
 
-        Dimension dimensioneBottoni = new Dimension(200, 40);
-        uscita.setPreferredSize(dimensioneBottoni);
-        selezionaFile.setPreferredSize(dimensioneBottoni);
+    private JPanel creaHeader() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(COLORE_SFONDO);
 
-        Color colorePrimario = new Color(70, 130, 180); // blu moderno
-        Color coloreTesto = Color.WHITE;
+        JLabel titolo = new JLabel("GESTIONE ORARIO SCOLASTICO", SwingConstants.CENTER);
+        titolo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titolo.setForeground(COLORE_PRIMARIO);
 
-        personalizzaBottone(uscita, colorePrimario, coloreTesto);
-        personalizzaBottone(selezionaFile, new Color(46, 139, 87), coloreTesto); // verde
+        JLabel sottotitolo = new JLabel("Seleziona un file CSV per iniziare",
+                SwingConstants.CENTER);
+        sottotitolo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        sottotitolo.setForeground(COLORE_TESTO);
+        sottotitolo.setBorder(new EmptyBorder(10, 0, 0, 0));
 
-        pannelloSud.add(uscita);
-        pannelloSud.add(selezionaFile);
+        header.add(titolo, BorderLayout.NORTH);
+        header.add(sottotitolo, BorderLayout.CENTER);
 
-        uscita.addActionListener(e -> System.exit(0));
+        return header;
+    }
 
-        selezionaFile.addActionListener(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                JFileChooser fileChooser = new JFileChooser();
-                FileNameExtensionFilter filter = new FileNameExtensionFilter("File CSV", "csv");
-                fileChooser.setFileFilter(filter);
-                int result = fileChooser.showOpenDialog(null);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    File fileSelezionato = fileChooser.getSelectedFile();
-                    LettoreCSV lettoreCSV = new LettoreCSV();
-                    try {
-                        lettoreCSV.leggiFile(fileSelezionato.getAbsolutePath(),gestoreDati);
-                    } catch (IOException | CsvException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    chiudiFrame();
-                    new InterfacciaMain(gestoreDati.getListaClassi());
-                }
-                else {
-                    System.out.println("Operazione annullata.");
-                }
-            }
-        });
-        this.setVisible(true);
+    private JPanel creaIstruzioni() {
+        JPanel pannelloIstruzioni = new JPanel(new GridLayout(0, 1, 8, 8));
+        pannelloIstruzioni.setBackground(COLORE_SFONDO);
+        pannelloIstruzioni.setBorder(new EmptyBorder(10, 20, 10, 20));
+
+        aggiungiIstruzione(pannelloIstruzioni, "• Seleziona il file CSV contenente l'orario scolastico");
+        aggiungiIstruzione(pannelloIstruzioni, "• Visualizza e gestisci gli orari delle classi");
+        aggiungiIstruzione(pannelloIstruzioni, "• Organizza sostituzioni e ore da recuperare");
+
+        return pannelloIstruzioni;
+    }
+
+    private void aggiungiIstruzione(JPanel panel, String testo) {
+        JLabel istruzione = new JLabel(testo);
+        istruzione.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        istruzione.setForeground(COLORE_TESTO);
+        panel.add(istruzione);
+    }
+
+    private JPanel creaPannelloPulsanti() {
+        JPanel pannelloPulsanti = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        pannelloPulsanti.setBackground(COLORE_SFONDO);
+        pannelloPulsanti.setBorder(new EmptyBorder(20, 0, 0, 0));
+
+        JButton pulsanteUscita = creaPulsante("ESCI", COLORE_PRIMARIO);
+        JButton pulsanteSeleziona = creaPulsante("SELEZIONA FILE", COLORE_SECONDARIO);
+
+        
+        pulsanteUscita.addActionListener(e -> confermaUscita());
+        pulsanteSeleziona.addActionListener(e -> apriSelettoreFile());
+
+        pannelloPulsanti.add(pulsanteUscita);
+        pannelloPulsanti.add(pulsanteSeleziona);
+
+        return pannelloPulsanti;
+    }
+
+    private JButton creaPulsante(String testo, Color colore) {
+        JButton pulsante = new JButton(testo);
+        pulsante.setPreferredSize(new Dimension(160, 40));
+        personalizzaBottone(pulsante, colore, Color.BLACK);
+        return pulsante;
     }
 
     private void personalizzaBottone(JButton bottone, Color coloreSfondo, Color coloreTesto) {
         bottone.setFocusPainted(false);
         bottone.setBackground(coloreSfondo);
         bottone.setForeground(coloreTesto);
-        bottone.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        bottone.setBorder(new LineBorder(new Color(230, 230, 230, 0), 2, true)); // bordo arrotondato
+        bottone.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        bottone.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(coloreSfondo.darker(), 1),
+                BorderFactory.createEmptyBorder(8, 16, 8, 16)
+        ));
         bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        
+        bottone.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                bottone.setBackground(coloreSfondo.brighter());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                bottone.setBackground(coloreSfondo);
+            }
+        });
     }
 
-    private void chiudiFrame(){
+    private void confermaUscita() {
+        int scelta = JOptionPane.showConfirmDialog(
+                this,
+                "Sei sicuro di voler uscire dal programma?",
+                "Conferma Uscita",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (scelta == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
+    }
+
+    private void apriSelettoreFile() {
+        JFileChooser selettoreFile = new JFileChooser();
+        selettoreFile.setDialogTitle("Seleziona il file CSV dell'orario");
+        selettoreFile.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "File CSV (*.csv)", "csv"));
+
+        selettoreFile.setCurrentDirectory(new File(System.getProperty("user.home")));
+
+        int risultato = selettoreFile.showOpenDialog(this);
+
+        if (risultato == JFileChooser.APPROVE_OPTION) {
+            File fileSelezionato = selettoreFile.getSelectedFile();
+            elaboraFileSelezionato(fileSelezionato);
+        }
+    }
+
+    private void elaboraFileSelezionato(File file) {
+        try {
+            LettoreCSV lettoreCSV = new LettoreCSV();
+            lettoreCSV.leggiFile(file.getAbsolutePath(), gestoreDati);
+            avviaInterfacciaPrincipale();
+        } catch (IOException | CsvException ex) {
+            gestisciErroreCaricamento(ex);
+        }
+    }
+
+    private void avviaInterfacciaPrincipale() {
         this.dispose();
+        SwingUtilities.invokeLater(() -> new InterfacciaMain(gestoreDati));
+    }
+
+    private void gestisciErroreCaricamento(Exception ex) {
+        JOptionPane.showMessageDialog(
+                this,
+                "Errore durante il caricamento del file:\n" + ex.getMessage(),
+                "Errore di Caricamento",
+                JOptionPane.ERROR_MESSAGE
+        );
+        ex.printStackTrace();
     }
 
     public static void main(String[] args) {
-        new PaginaIniziale();
+            new PaginaIniziale();
     }
 }
