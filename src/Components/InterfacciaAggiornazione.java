@@ -22,8 +22,7 @@ public class InterfacciaAggiornazione extends JFrame {
         add(BorderLayout.CENTER, panel);
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(800, 600);
-
+        setSize(600, 400);
 
         setVisible(true);
         setResizable(false);
