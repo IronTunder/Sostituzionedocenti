@@ -24,6 +24,7 @@ public class InterfacciaAggiornazione extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(800, 600);
 
+
         setVisible(true);
         setResizable(false);
         setLocationRelativeTo(null);
