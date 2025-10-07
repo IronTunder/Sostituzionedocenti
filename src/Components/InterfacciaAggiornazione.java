@@ -33,8 +33,8 @@ public class InterfacciaAggiornazione extends JFrame {
         setResizable(false);
         setLocationRelativeTo(null);
     }
-
+/*
     public static void main(String[] args) {
         new InterfacciaAggiornazione();
-    }
+    } */
 }
