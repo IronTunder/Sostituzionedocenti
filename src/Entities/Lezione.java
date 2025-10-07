@@ -1,6 +1,9 @@
 package Entities;
 
-public class Lezione {
+import java.io.Serializable;
+
+public class Lezione implements Serializable {
+
     private final int numero;
     private final String durata;
     private final String materia;

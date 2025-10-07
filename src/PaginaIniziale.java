@@ -1,12 +1,14 @@
 import Components.InterfacciaMain;
 import Managers.GestoreDati;
 import Managers.LettoreCSV;
+import Managers.Serializzazione;
 import com.opencsv.exceptions.CsvException;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
 public class PaginaIniziale extends JFrame {
@@ -18,7 +20,7 @@ public class PaginaIniziale extends JFrame {
     private final Color COLORE_SECONDARIO = new Color(46, 139, 87);
     private final Color COLORE_TESTO = new Color(0, 0, 0);
 
-    public PaginaIniziale() {
+    public PaginaIniziale() throws IOException {
         inizializzaLookAndFeel();
         inizializzaUI();
     }
@@ -203,7 +205,19 @@ public class PaginaIniziale extends JFrame {
         ex.printStackTrace();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        File directory = new File(".");
+        FilenameFilter filter = new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".dat");
+            }
+        };
+        File[] files = directory.listFiles(filter);
+        if (files != null && files.length > 0) {
+
+        } else {
             new PaginaIniziale();
+        }
     }
-}
+    }

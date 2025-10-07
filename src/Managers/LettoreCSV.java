@@ -54,8 +54,6 @@ public class LettoreCSV {
                         gestoreDati.creaDocente(cognomePulito);
                     }
                 }
-
-                
                 gestoreDati.creaClasse(classe);
                 gestoreDati.creaOrarioClasse(classe);
             }
