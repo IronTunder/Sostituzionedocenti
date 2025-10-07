@@ -175,7 +175,7 @@ public class InterfacciaMain extends JFrame {
         personalizzaBottone(bGestioneOre, new Color(255, 159, 67), Color.BLACK);
 
         bSostituzione.addActionListener(e -> {
-
+            new PannelloSostituzioni(gestoreDati);
         });
 
         bAggiornazione.addActionListener(e -> {
