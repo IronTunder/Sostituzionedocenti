@@ -110,6 +110,6 @@ public class InterfacciaAggiornazione extends JFrame {
         JOptionPane.showMessageDialog(this, testo, "Informazione", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public static void main(String[] args) { new InterfacciaAggiornazione(); }
+   // public static void main(String[] args) { new InterfacciaAggiornazione(); }
 
 }
