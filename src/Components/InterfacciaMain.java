@@ -174,6 +174,14 @@ public class InterfacciaMain extends JFrame {
         personalizzaBottone(bAggiornazione, new Color(72, 187, 120), Color.BLACK);
         personalizzaBottone(bGestioneOre, new Color(255, 159, 67), Color.BLACK);
 
+        bSostituzione.addActionListener(e -> {
+
+        });
+
+        bAggiornazione.addActionListener(e -> {
+
+        });
+
         pannelloPulsanti.add(bSostituzione);
         pannelloPulsanti.add(bAggiornazione);
         pannelloPulsanti.add(bGestioneOre);
