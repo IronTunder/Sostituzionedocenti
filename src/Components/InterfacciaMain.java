@@ -179,7 +179,7 @@ public class InterfacciaMain extends JFrame {
         });
 
         bAggiornazione.addActionListener(e -> {
-
+            new InterfacciaAggiornazione();
         });
 
         pannelloPulsanti.add(bSostituzione);
