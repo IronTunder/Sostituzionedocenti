@@ -10,10 +10,10 @@ import java.util.ArrayList;
 
 public class InterfacciaMain extends JFrame {
 
-    private JComboBox<String> comboClassi = new JComboBox<>();
+    private final JComboBox<String> comboClassi = new JComboBox<>();
     private JPanel pannelloOrario;
     private JPanel pannelloSinistra;
-    private GestoreDati gestoreDati;
+    private final GestoreDati gestoreDati;
     
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);     
     private final Color COLORE_SECONDARIO = new Color(100, 149, 237);  

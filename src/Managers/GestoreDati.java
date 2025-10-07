@@ -24,8 +24,7 @@ public class GestoreDati {
     }
 
     public void creaDocente(String cognome) {
-        boolean docenteEsistente = listaDocenti.stream()
-                .anyMatch(docente -> docente.getCognome().equals(cognome));
+        boolean docenteEsistente = esisteDocente(cognome);
 
         if (!docenteEsistente) {
             listaDocenti.add(new Docente(cognome));
@@ -35,8 +34,7 @@ public class GestoreDati {
     public void creaClasse(String sezione) {
         if (sezione == null || sezione.isEmpty()) return;
 
-        boolean classeEsistente = listaClassi.stream()
-                .anyMatch(classe -> classe.getSezione().equals(sezione));
+        boolean classeEsistente = esisteClasse(sezione);
 
         if (!classeEsistente) {
             listaClassi.add(new Classe(sezione, this));

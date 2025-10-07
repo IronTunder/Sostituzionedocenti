@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class PaginaIniziale extends JFrame {
-    private GestoreDati gestoreDati = new GestoreDati();
+    private final GestoreDati gestoreDati = new GestoreDati();
 
     
     private final Color COLORE_SFONDO = new Color(248, 250, 252);

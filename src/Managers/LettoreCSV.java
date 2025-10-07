@@ -17,10 +17,8 @@ public class LettoreCSV {
                 .build()) {
 
             List<String[]> entries = reader.readAll();
-
-            
             if (!entries.isEmpty()) {
-                entries.remove(0);
+                entries.removeFirst();
             }
 
             for (String[] entry : entries) {
