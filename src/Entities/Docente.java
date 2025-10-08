@@ -1,10 +1,15 @@
 package Entities;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Docente {
+public class Docente implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     private final String cognome;
     private final List<Classe> listaClassi;
     private final List<String> listaMaterie;

@@ -26,8 +26,8 @@ public class LettoreCSV {
 
                 processaRiga(entry, gestoreDati);
             }
-
             gestoreDati.organizzaClassi();
+            gestoreDati.organizzaDocenti();
         }
     }
 

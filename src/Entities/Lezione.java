@@ -1,8 +1,11 @@
 package Entities;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class Lezione implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private final int numero;
     private final String durata;

@@ -2,10 +2,15 @@ package Entities;
 
 import Managers.GestoreDati;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class Classe {
+public class Classe implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     private final ArrayList<Lezione> lezioni;
     private final ArrayList<Docente> docenti;
     private final String sezione;

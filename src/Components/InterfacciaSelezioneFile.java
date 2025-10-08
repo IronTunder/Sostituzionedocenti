@@ -1,4 +1,5 @@
-import Components.InterfacciaMain;
+package Components;
+
 import Managers.GestoreDati;
 import Managers.LettoreCSV;
 import Managers.Serializzazione;
@@ -8,19 +9,20 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 
-public class PaginaIniziale extends JFrame {
-    private final GestoreDati gestoreDati = new GestoreDati();
-
+public class InterfacciaSelezioneFile extends JFrame {
     
     private final Color COLORE_SFONDO = new Color(248, 250, 252);
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
     private final Color COLORE_SECONDARIO = new Color(46, 139, 87);
     private final Color COLORE_TESTO = new Color(0, 0, 0);
+    private final GestoreDati gestoreDati;
+    private final Serializzazione serializzazione;
 
-    public PaginaIniziale() throws IOException {
+    public InterfacciaSelezioneFile(GestoreDati gestoreDati, Serializzazione serializzazione) throws IOException {
+        this.gestoreDati = gestoreDati;
+        this.serializzazione = serializzazione;
         inizializzaLookAndFeel();
         inizializzaUI();
     }
@@ -184,6 +186,7 @@ public class PaginaIniziale extends JFrame {
         try {
             LettoreCSV lettoreCSV = new LettoreCSV();
             lettoreCSV.leggiFile(file.getAbsolutePath(), gestoreDati);
+            serializzazione.salvaDati();
             avviaInterfacciaPrincipale();
         } catch (IOException | CsvException ex) {
             gestisciErroreCaricamento(ex);
@@ -192,7 +195,7 @@ public class PaginaIniziale extends JFrame {
 
     private void avviaInterfacciaPrincipale() {
         this.dispose();
-        SwingUtilities.invokeLater(() -> new InterfacciaMain(gestoreDati));
+        SwingUtilities.invokeLater(() -> new MenuPrincipale(gestoreDati,serializzazione));
     }
 
     private void gestisciErroreCaricamento(Exception ex) {
@@ -205,19 +208,4 @@ public class PaginaIniziale extends JFrame {
         ex.printStackTrace();
     }
 
-    public static void main(String[] args) throws IOException {
-        File directory = new File(".");
-        FilenameFilter filter = new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".dat");
-            }
-        };
-        File[] files = directory.listFiles(filter);
-        if (files != null && files.length > 0) {
-
-        } else {
-            new PaginaIniziale();
-        }
-    }
-    }
+}

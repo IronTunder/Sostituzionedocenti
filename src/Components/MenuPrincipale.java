@@ -2,32 +2,33 @@ package Components;
 
 import Entities.Classe;
 import Managers.GestoreDati;
+import Managers.Serializzazione;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class InterfacciaMain extends JFrame {
+public class MenuPrincipale extends JFrame {
 
     private final JComboBox<String> comboClassi = new JComboBox<>();
     private JPanel pannelloOrario;
     private JPanel pannelloSinistra;
     private final GestoreDati gestoreDati;
-    
-    private final Color COLORE_PRIMARIO = new Color(70, 130, 180);     
-    private final Color COLORE_SECONDARIO = new Color(100, 149, 237);  
-    private final Color COLORE_SFONDO = new Color(248, 250, 252);      
+    private final Serializzazione serializzazione;
+    private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
+    private final Color COLORE_SECONDARIO = new Color(100, 149, 237);
+    private final Color COLORE_SFONDO = new Color(248, 250, 252);
     private final Color COLORE_CARTA = Color.WHITE;
     private final Color COLORE_TESTO = new Color(60, 60, 70);
 
-    public InterfacciaMain(GestoreDati gestoreDati) {
+    public MenuPrincipale(GestoreDati gestoreDati, Serializzazione serializzazione) {
         this.gestoreDati = gestoreDati;
+        this.serializzazione = serializzazione;
 
-        
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            
+
             UIManager.put("Panel.background", COLORE_SFONDO);
             UIManager.put("ComboBox.background", Color.WHITE);
             UIManager.put("Button.background", COLORE_PRIMARIO);
@@ -38,29 +39,29 @@ public class InterfacciaMain extends JFrame {
     }
 
     private void inizializzaUI(ArrayList<Classe> classi) {
-        
+
         this.setTitle("Gestione Orario Scolastico");
-        this.setSize(1600, 700);
+        this.setSize(1280, 700);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout(20, 20));
         this.setLocationRelativeTo(null);
         this.getContentPane().setBackground(COLORE_SFONDO);
         setResizable(false);
 
-        
+
         aggiungiTitolo();
 
-        
+
         JPanel pannelloCentro = creaPannelloCentrale();
         this.add(pannelloCentro, BorderLayout.CENTER);
 
-        
-        pannelloSinistra = creaPannelloSinistro(classi);
-        pannelloCentro.add(pannelloSinistra);
 
-        
+        pannelloSinistra = creaPannelloSinistro(classi);
+        pannelloCentro.add(pannelloSinistra, BorderLayout.CENTER);
+
+
         JPanel pannelloDestra = creaPannelloDestro();
-        pannelloCentro.add(pannelloDestra);
+        pannelloCentro.add(pannelloDestra, BorderLayout.LINE_END);
 
         this.setVisible(true);
     }
@@ -85,7 +86,7 @@ public class InterfacciaMain extends JFrame {
     }
 
     private JPanel creaPannelloCentrale() {
-        JPanel pannelloCentro = new JPanel(new GridLayout(1, 2, 20, 20));
+        JPanel pannelloCentro = new JPanel(new BorderLayout(20, 0));
         pannelloCentro.setBackground(COLORE_SFONDO);
         pannelloCentro.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
         return pannelloCentro;
@@ -95,11 +96,11 @@ public class InterfacciaMain extends JFrame {
         JPanel pannelloSinistra = new JPanel(new BorderLayout(15, 15));
         pannelloSinistra.setBackground(COLORE_SFONDO);
 
-        
+
         JPanel pannelloSelezione = creaPannelloSelezioneClasse(classi);
         pannelloSinistra.add(pannelloSelezione, BorderLayout.NORTH);
 
-        
+
         pannelloOrario = new JPanel(new BorderLayout());
         pannelloOrario.setBackground(COLORE_CARTA);
         pannelloOrario.setBorder(BorderFactory.createCompoundBorder(
@@ -115,7 +116,7 @@ public class InterfacciaMain extends JFrame {
     }
 
     private JPanel creaPannelloSelezioneClasse(ArrayList<Classe> classi) {
-        JPanel pannelloSelezione = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        JPanel pannelloSelezione = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         pannelloSelezione.setBackground(COLORE_SFONDO);
         pannelloSelezione.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
@@ -140,7 +141,7 @@ public class InterfacciaMain extends JFrame {
         ));
         comboClassi.setMaximumRowCount(12);
 
-        
+
         comboClassi.addActionListener(e -> aggiornaTabella());
 
         pannelloSelezione.add(labelClasse);
@@ -151,43 +152,43 @@ public class InterfacciaMain extends JFrame {
 
     private JPanel creaPannelloDestro() {
         JPanel pannelloDestra = new JPanel(new BorderLayout(0, 20));
+        pannelloDestra.setPreferredSize(new Dimension(400,0));
         pannelloDestra.setBackground(COLORE_SFONDO);
 
-        
+
         JLabel titoloPulsanti = new JLabel("OPERAZIONI", SwingConstants.CENTER);
         titoloPulsanti.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titoloPulsanti.setForeground(COLORE_TESTO);
         titoloPulsanti.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         pannelloDestra.add(titoloPulsanti, BorderLayout.NORTH);
 
-        
+
         JPanel pannelloPulsanti = new JPanel(new GridLayout(4, 1, 15, 15));
         pannelloPulsanti.setBackground(COLORE_SFONDO);
         pannelloPulsanti.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-        JButton bSostituzione = new JButton("Esegui Sostituzione");
+        JButton bSostituzione = new JButton("Docenti Assenti e Sostituzioni");
         JButton bAggiornazione = new JButton("Aggiorna File");
         JButton bGestioneOre = new JButton("Gestione Ore da Recuperare");
 
-        
+
         personalizzaBottone(bSostituzione, new Color(100, 149, 237), Color.BLACK);
         personalizzaBottone(bAggiornazione, new Color(72, 187, 120), Color.BLACK);
         personalizzaBottone(bGestioneOre, new Color(255, 159, 67), Color.BLACK);
 
         bSostituzione.addActionListener(e -> {
-            new PannelloSostituzioni(gestoreDati);
+            new InterfacciaAssenti(gestoreDati);
         });
 
         bAggiornazione.addActionListener(e -> {
-            new InterfacciaAggiornazione();
+            new InterfacciaAggiornamentoFile(gestoreDati,serializzazione);
+            dispose();
         });
+
 
         pannelloPulsanti.add(bSostituzione);
         pannelloPulsanti.add(bAggiornazione);
         pannelloPulsanti.add(bGestioneOre);
-
-        
-        
 
         pannelloDestra.add(pannelloPulsanti, BorderLayout.CENTER);
 
@@ -212,7 +213,7 @@ public class InterfacciaMain extends JFrame {
         bottone.setBorder(new LineBorder(coloreSfondo.darker(), 1, true));
         bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        
+
         bottone.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 bottone.setBackground(coloreSfondo.brighter());

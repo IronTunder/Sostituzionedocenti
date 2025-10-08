@@ -4,14 +4,19 @@ import Entities.Classe;
 import Entities.Docente;
 import Entities.Lezione;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Optional;
 
-public class GestoreDati {
-    private final ArrayList<Docente> listaDocenti = new ArrayList<>();
-    private final ArrayList<Classe> listaClassi = new ArrayList<>();
-    private final ArrayList<Lezione> listaLezioni = new ArrayList<>();
+public class GestoreDati implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private ArrayList<Docente> listaDocenti = new ArrayList<>();
+    private ArrayList<Classe> listaClassi = new ArrayList<>();
+    private ArrayList<Lezione> listaLezioni = new ArrayList<>();
 
     public void creaLezione(int numero, String durata, String materia, String cognomi,
                             String classe, String coDocente, String giorno, String oraInizio) {
@@ -43,6 +48,10 @@ public class GestoreDati {
 
     public void organizzaClassi() {
         listaClassi.sort(Comparator.comparing(Classe::getSezione));
+    }
+
+    public void organizzaDocenti() {
+        listaDocenti.sort(Comparator.comparing(Docente::getCognome));
     }
 
     public void creaOrarioClasse(String sezione) {
@@ -93,7 +102,17 @@ public class GestoreDati {
         return new ArrayList<>(listaClassi);
     }
 
-    public ArrayList<Lezione> getListaLezioni() {
-        return new ArrayList<>(listaLezioni);
+    public ArrayList<Lezione> getListaLezioni() { return new ArrayList<>(listaLezioni);}
+
+    public void setListaDocenti(ArrayList<Docente> listaDocenti) {
+        this.listaDocenti = listaDocenti;
+    }
+
+    public void setListaLezioni(ArrayList<Lezione> listaLezioni) {
+        this.listaLezioni = listaLezioni;
+    }
+
+    public void setListaClassi(ArrayList<Classe> listaClassi) {
+        this.listaClassi = listaClassi;
     }
 }
