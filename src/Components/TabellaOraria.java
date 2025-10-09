@@ -245,4 +245,5 @@ public class TabellaOraria extends JPanel {
         double luminosita = (0.299 * colore.getRed() + 0.587 * colore.getGreen() + 0.114 * colore.getBlue()) / 255;
         return luminosita < 0.5;
     }
+
 }
