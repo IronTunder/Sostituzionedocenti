@@ -17,14 +17,17 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
     private final Color COLORE_SECONDARIO = new Color(46, 139, 87);
     private final Color COLORE_TESTO = new Color(0, 0, 0);
+    private final Color COLORE_BORDO = new Color(200, 200, 200);
+    private final Color COLORE_BORDO_FOCUS = new Color(70, 130, 180);
 
     private ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
-    private ArrayList<Docente> originalDocenti;    // lista completa immutata
-    private ArrayList<Docente> filteredDocenti;    // lista filtrata da mostrare
+    private ArrayList<Docente> docenti;
+    private ArrayList<Docente> docentiFiltrati;
 
-    private JPanel panelCentro;                     // ora campo di classe per poterla aggiornare
+    private JPanel panelCentro;
     private JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
     private JLabel conteggioLabel = new JLabel("Docenti selezionati: 0");
+    private JTextField campoRicerca;
 
     public InterfacciaAssenti(GestoreDati gestoreDati) {
         this.setTitle("Sostituzioni");
@@ -34,41 +37,145 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         this.getContentPane().setBackground(COLORE_SFONDO);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // copio la lista per non modificare la sorgente
-        this.originalDocenti = new ArrayList<>(gestoreDati.getListaDocenti());
-        this.filteredDocenti = new ArrayList<>(originalDocenti);
+        this.docenti = new ArrayList<>(gestoreDati.getListaDocenti());
+        this.docentiFiltrati = new ArrayList<>(docenti);
 
-        JPanel panelNord = new JPanel(new GridLayout(2,1));
+        JPanel panelNord = new JPanel(new BorderLayout());
+        panelNord.setBackground(COLORE_SFONDO);
+        panelNord.setBorder(new EmptyBorder(20, 40, 20, 40));
         this.add(panelNord, BorderLayout.NORTH);
-        JLabel inizio = new JLabel("Seleziona Docenti Assenti", SwingConstants.CENTER);
-        inizio.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        inizio.setForeground(COLORE_PRIMARIO);
-        inizio.setBorder(new EmptyBorder(20, 0, 10, 0));
-        panelNord.add(inizio);
 
-        // campo testo per il filtro
-        JTextField text = new JTextField();
-        text.setActionCommand("JTextField");
-        // opzione: ascoltatore su Enter (se vuoi anche Enter)
-        text.addActionListener(this);
-        // DocumentListener per aggiornare *mentre scrivi*
-        text.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) { filter(text.getText()); }
-            @Override
-            public void removeUpdate(DocumentEvent e) { filter(text.getText()); }
-            @Override
-            public void changedUpdate(DocumentEvent e) { filter(text.getText()); }
+        
+        JLabel titolo = new JLabel("Seleziona Docenti Assenti", SwingConstants.CENTER);
+        titolo.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titolo.setForeground(COLORE_PRIMARIO);
+        titolo.setBorder(new EmptyBorder(0, 0, 20, 0));
+        panelNord.add(titolo, BorderLayout.NORTH);
+
+        
+        JPanel panelRicerca = new JPanel(new BorderLayout(10, 0));
+        panelRicerca.setBackground(COLORE_SFONDO);
+        panelRicerca.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        
+        campoRicerca = new JTextField();
+        campoRicerca.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        campoRicerca.setForeground(COLORE_TESTO);
+        campoRicerca.setBackground(Color.WHITE);
+        campoRicerca.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COLORE_BORDO, 1),
+                BorderFactory.createEmptyBorder(10, 15, 10, 40)
+        ));
+        campoRicerca.setPreferredSize(new Dimension(300, 40));
+
+        
+        campoRicerca.setText("Cerca per cognome...");
+        campoRicerca.setForeground(Color.GRAY);
+
+
+        
+        JButton cancellaRicerca = new JButton("X");
+        cancellaRicerca.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        cancellaRicerca.setForeground(Color.GRAY);
+        cancellaRicerca.setBackground(Color.WHITE);
+        cancellaRicerca.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        cancellaRicerca.setFocusPainted(false);
+        cancellaRicerca.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        cancellaRicerca.setVisible(false);
+
+        
+        JPanel panelRicercaInterno = new JPanel(new BorderLayout());
+        panelRicercaInterno.setBackground(Color.WHITE);
+        panelRicercaInterno.add(cancellaRicerca, BorderLayout.EAST);
+
+        campoRicerca.setLayout(new BorderLayout());
+        campoRicerca.add(panelRicercaInterno, BorderLayout.EAST);
+
+        panelRicerca.add(campoRicerca, BorderLayout.CENTER);
+        panelNord.add(panelRicerca, BorderLayout.CENTER);
+
+        
+        campoRicerca.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                campoRicerca.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(COLORE_BORDO_FOCUS, 2),
+                        BorderFactory.createEmptyBorder(9, 14, 9, 39)
+                ));
+                if (campoRicerca.getText().equals("Cerca per cognome...")) {
+                    campoRicerca.setText("");
+                    campoRicerca.setForeground(COLORE_TESTO);
+                }
+            }
+
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                campoRicerca.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(COLORE_BORDO, 1),
+                        BorderFactory.createEmptyBorder(10, 15, 10, 40)
+                ));
+                if (campoRicerca.getText().isEmpty()) {
+                    campoRicerca.setText("Cerca per cognome...");
+                    campoRicerca.setForeground(Color.GRAY);
+                    cancellaRicerca.setVisible(false);
+                }
+            }
         });
-        panelNord.add(text);
 
-        // pannello centro (ora campo)
+        
+        campoRicerca.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                aggiornaRicerca();
+            }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                aggiornaRicerca();
+            }
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                aggiornaRicerca();
+            }
+
+            private void aggiornaRicerca() {
+                String testo = campoRicerca.getText();
+                if (!testo.equals("Cerca per cognome...")) {
+                    cancellaRicerca.setVisible(!testo.isEmpty());
+                    filtra(testo);
+                }
+            }
+        });
+
+        
+        campoRicerca.addActionListener(this);
+
+        
+        cancellaRicerca.addActionListener(e -> {
+            campoRicerca.setText("");
+            campoRicerca.setForeground(Color.GRAY);
+            campoRicerca.setText("Cerca per cognome...");
+            cancellaRicerca.setVisible(false);
+            filtra("");
+            campoRicerca.requestFocus();
+        });
+
+        
+        cancellaRicerca.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                cancellaRicerca.setForeground(COLORE_PRIMARIO);
+                cancellaRicerca.setBackground(new Color(240, 240, 240));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                cancellaRicerca.setForeground(Color.GRAY);
+                cancellaRicerca.setBackground(Color.WHITE);
+            }
+        });
+
+        
         panelCentro = new JPanel();
         panelCentro.setBackground(COLORE_SFONDO);
         panelCentro.setBorder(new EmptyBorder(20, 60, 20, 60));
         panelCentro.setLayout(new BoxLayout(panelCentro, BoxLayout.Y_AXIS));
 
-        // scroll pane
+        
         JScrollPane scrollPane = new JScrollPane(panelCentro);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
                 new EmptyBorder(10, 30, 10, 30),
@@ -79,12 +186,10 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setPreferredSize(new Dimension(700, 300));
-        JViewport viewport = scrollPane.getViewport();
-        viewport.setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
 
         this.add(scrollPane, BorderLayout.CENTER);
 
-        // bottoni
+        
         pannelloBottoni.setBackground(COLORE_SFONDO);
         pannelloBottoni.setBorder(new EmptyBorder(10, 0, 20, 0));
 
@@ -117,69 +222,72 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
 
         this.add(pannelloBottoni, BorderLayout.SOUTH);
 
-        // inizializzo la lista visibile
-        refreshList();
-
+        
+        aggiornaLista();
         this.setVisible(true);
     }
 
-    /**
-     * Filtra la lista originale (case-insensitive) e aggiorna la UI.
-     */
-    private void filter(String query) {
-        String q = query == null ? "" : query.trim().toLowerCase();
-        filteredDocenti.clear();
-        if (q.isEmpty()) {
-            filteredDocenti.addAll(originalDocenti);
+    private void filtra(String stringa) {
+        String q = stringa == null ? "" : stringa.trim().toLowerCase();
+        docentiFiltrati.clear();
+
+        if (q.isEmpty() || q.equals("cerca per cognome...")) {
+            docentiFiltrati.addAll(docenti);
         } else {
-            for (Docente d : originalDocenti) {
+            for (Docente d : docenti) {
                 if (d.getCognome() != null && d.getCognome().toLowerCase().contains(q)) {
-                    filteredDocenti.add(d);
+                    docentiFiltrati.add(d);
                 }
             }
         }
-        refreshList();
+        aggiornaLista();
     }
 
-    /**
-     * Ricrea i componenti del pannello centrale in base a filteredDocenti.
-     */
-    private void refreshList() {
+
+    private void aggiornaLista() {
         panelCentro.removeAll();
         checkBoxes.clear();
 
-        for (int i = 0; i < filteredDocenti.size(); i++) {
-            Docente doc = filteredDocenti.get(i);
+        if (docentiFiltrati.isEmpty()) {
+            JLabel nessunRisultato = new JLabel("Nessun docente trovato", SwingConstants.CENTER);
+            nessunRisultato.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+            nessunRisultato.setForeground(Color.GRAY);
+            nessunRisultato.setBorder(new EmptyBorder(20, 0, 20, 0));
+            panelCentro.add(nessunRisultato);
+        } else {
+            for (int i = 0; i < docentiFiltrati.size(); i++) {
+                Docente doc = docentiFiltrati.get(i);
 
-            JPanel rigaDocente = new JPanel(new BorderLayout());
-            rigaDocente.setBackground(COLORE_SFONDO);
-            rigaDocente.setBorder(new EmptyBorder(5, 0, 5, 0));
-            rigaDocente.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+                JPanel rigaDocente = new JPanel(new BorderLayout());
+                rigaDocente.setBackground(COLORE_SFONDO);
+                rigaDocente.setBorder(new EmptyBorder(5, 0, 5, 0));
+                rigaDocente.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
 
-            JLabel nomeLabel = new JLabel((i + 1) + ") " + doc.getCognome());
-            nomeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-            nomeLabel.setForeground(COLORE_TESTO);
+                JLabel nomeLabel = new JLabel((i + 1) + ") " + doc.getCognome());
+                nomeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+                nomeLabel.setForeground(COLORE_TESTO);
 
-            JCheckBox checkBox = new JCheckBox();
-            checkBox.setActionCommand("CheckBox");
-            checkBox.addActionListener(this);
-            checkBox.setBackground(COLORE_SFONDO);
+                JCheckBox checkBox = new JCheckBox();
+                checkBox.setActionCommand("CheckBox");
+                checkBox.addActionListener(this);
+                checkBox.setBackground(COLORE_SFONDO);
 
-            JPanel checkPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            checkPanel.setBackground(COLORE_SFONDO);
-            checkPanel.add(checkBox);
+                JPanel checkPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                checkPanel.setBackground(COLORE_SFONDO);
+                checkPanel.add(checkBox);
 
-            rigaDocente.add(nomeLabel, BorderLayout.WEST);
-            rigaDocente.add(checkPanel, BorderLayout.EAST);
-            panelCentro.add(rigaDocente);
+                rigaDocente.add(nomeLabel, BorderLayout.WEST);
+                rigaDocente.add(checkPanel, BorderLayout.EAST);
+                panelCentro.add(rigaDocente);
 
-            if (i < filteredDocenti.size() - 1) {
-                JSeparator separator = new JSeparator();
-                separator.setForeground(Color.LIGHT_GRAY);
-                panelCentro.add(separator);
+                if (i < docentiFiltrati.size() - 1) {
+                    JSeparator separator = new JSeparator();
+                    separator.setForeground(Color.LIGHT_GRAY);
+                    panelCentro.add(separator);
+                }
+
+                checkBoxes.add(checkBox);
             }
-
-            checkBoxes.add(checkBox);
         }
 
         panelCentro.add(Box.createVerticalGlue());
@@ -240,10 +348,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         String cmd = e.getActionCommand();
         if ("CheckBox".equals(cmd)) {
             aggiornaPannelloConteggio();
-        } else if ("JTextField".equals(cmd) && e.getSource() instanceof JTextField) {
-            // utile se premi Enter: aggiorna il filtro (ma con DocumentListener abbiamo già aggiornato)
-            JTextField jtf = (JTextField) e.getSource();
-            filter(jtf.getText());
         }
     }
 }

@@ -78,6 +78,10 @@ public class Docente implements Serializable {
         return listaMaterie.contains(materia);
     }
 
+    public ArrayList<Lezione> getListaLezioni() {
+        return listaLezioni;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

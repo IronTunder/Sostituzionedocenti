@@ -185,6 +185,11 @@ public class MenuPrincipale extends JFrame {
             dispose();
         });
 
+        bGestioneOre.addActionListener(e -> {
+            new InterfacciaGestioneOreRecupero(gestoreDati);
+            dispose();
+        });
+
 
         pannelloPulsanti.add(bSostituzione);
         pannelloPulsanti.add(bAggiornazione);

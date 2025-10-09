@@ -1,5 +1,7 @@
 package Components;
 
+import Managers.GestoreDati;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -17,7 +19,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame {
     private JLabel titolo, sottotitolo;
 
 
-    public InterfacciaGestioneOreRecupero() {
+    public InterfacciaGestioneOreRecupero(GestoreDati gestoreDati) {
         setTitle("Gestione Ore Di Recupero");
         setBackground(coloreSfondo);
 

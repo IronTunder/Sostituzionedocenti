@@ -53,7 +53,7 @@ public class TabellaOraria extends JPanel {
 
             int riga = 1;
             for (Lezione lezione : lezioniGiorno) {
-                JPanel panelLezione = creaPanelLezione(lezione);
+                JPanel panelLezione = creaPanelLezione(lezione,false);
 
                 c.gridx = giornoIndex;
                 c.gridy = riga;
@@ -91,8 +91,8 @@ public class TabellaOraria extends JPanel {
 
     public TabellaOraria(Docente docente) {
         setLayout(new BorderLayout());
-        ArrayList<Lezione> lezioniGiorno = new ArrayList<>();
-        JLabel titolo = new JLabel("Orario della classe: " + classe.getSezione(), SwingConstants.CENTER);
+        ArrayList<Lezione> lezioni = docente.getListaLezioni();
+        JLabel titolo = new JLabel("Orario del docente: " + docente.getCognome(), SwingConstants.CENTER);
         titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titolo.setForeground(new Color(50, 50, 70));
         this.add(titolo, BorderLayout.NORTH);
@@ -130,7 +130,7 @@ public class TabellaOraria extends JPanel {
 
             int riga = 1;
             for (Lezione lezione : lezioniGiorno) {
-                JPanel panelLezione = creaPanelLezione(lezione);
+                JPanel panelLezione = creaPanelLezione(lezione,true);
 
                 c.gridx = giornoIndex;
                 c.gridy = riga;
@@ -166,7 +166,7 @@ public class TabellaOraria extends JPanel {
         this.add(scrollPane, BorderLayout.CENTER);
     }
 
-    private JPanel creaPanelLezione(Lezione lezione) {
+    private JPanel creaPanelLezione(Lezione lezione,boolean isDocente) {
         JPanel panelLezione = new JPanel(new BorderLayout());
 
         String[] cognomi = lezione.getCognomi();
@@ -184,17 +184,27 @@ public class TabellaOraria extends JPanel {
         JLabel labelCognomi = new JLabel(testoCognomi, SwingConstants.CENTER);
         JLabel labelMateria = new JLabel(lezione.getMateria(), SwingConstants.CENTER);
 
+
         Font fontNormale = new Font("Segoe UI", Font.PLAIN, 11);
         Font fontPiccolo = new Font("Segoe UI", Font.PLAIN, 9);
 
         labelCognomi.setFont(testoCognomi.length() > 20 ? fontPiccolo : fontNormale);
         labelMateria.setFont(lezione.getMateria().length() > 12 ? fontPiccolo : fontNormale);
 
+
+
         labelCognomi.setOpaque(false);
         labelMateria.setOpaque(false);
 
         panelLezione.add(labelCognomi, BorderLayout.NORTH);
         panelLezione.add(labelMateria, BorderLayout.CENTER);
+
+        if(isDocente){
+            JLabel labelClasse = new JLabel(lezione.getClasse(), SwingConstants.CENTER);
+            labelClasse.setFont(fontNormale);
+            labelClasse.setOpaque(false);
+            panelLezione.add(labelClasse, BorderLayout.SOUTH);
+        }
 
         panelLezione.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.BLACK, 1),
