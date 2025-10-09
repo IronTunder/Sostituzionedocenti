@@ -11,12 +11,14 @@ public class Docente implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final String cognome;
-    private final List<Classe> listaClassi;
-    private final List<String> listaMaterie;
-    private final List<String> listaOrari;
+    private final ArrayList<Classe> listaClassi;
+    private final ArrayList<Lezione> listaLezioni;
+    private final ArrayList<String> listaMaterie;
+    private final ArrayList<String> listaOrari;
 
     public Docente(String cognome) {
         this.cognome = Objects.requireNonNull(cognome, "Cognome non può essere null");
+        this.listaLezioni = new ArrayList<>();
         this.listaClassi = new ArrayList<>();
         this.listaMaterie = new ArrayList<>();
         this.listaOrari = new ArrayList<>();
@@ -24,14 +26,20 @@ public class Docente implements Serializable {
 
     
     public String getCognome() { return cognome; }
-    public List<Classe> getListaClassi() { return new ArrayList<>(listaClassi); }
-    public List<String> getListaMaterie() { return new ArrayList<>(listaMaterie); }
-    public List<String> getListaOrari() { return new ArrayList<>(listaOrari); }
+    public ArrayList<Classe> getListaClassi() { return new ArrayList<>(listaClassi); }
+    public ArrayList<String> getListaMaterie() { return new ArrayList<>(listaMaterie); }
+    public ArrayList<String> getListaOrari() { return new ArrayList<>(listaOrari); }
 
     
     public void aggiungiClasse(Classe classe) {
         if (classe != null && !listaClassi.contains(classe)) {
             listaClassi.add(classe);
+        }
+    }
+
+    public void aggiungiLezione(Lezione lezione) {
+        if (lezione != null && !listaLezioni.contains(lezione)) {
+            listaLezioni.add(lezione);
         }
     }
 

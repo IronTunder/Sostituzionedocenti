@@ -1,6 +1,7 @@
 package Components;
 
 import Entities.Classe;
+import Entities.Docente;
 import Entities.Lezione;
 import Managers.ColoriMaterie;
 
@@ -14,6 +15,83 @@ public class TabellaOraria extends JPanel {
         setLayout(new BorderLayout());
 
         ArrayList<Lezione> lezioni = classe.getLezioni();
+        JLabel titolo = new JLabel("Orario della classe: " + classe.getSezione(), SwingConstants.CENTER);
+        titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titolo.setForeground(new Color(50, 50, 70));
+        this.add(titolo, BorderLayout.NORTH);
+
+        JPanel pannelloOrario = new JPanel();
+        pannelloOrario.setLayout(new GridBagLayout());
+        pannelloOrario.setBackground(Color.WHITE);
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1.0;
+        c.weighty = 1.0;
+
+        String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
+        int maxOrePerGiorno = calcolaMaxOrePerGiorno(lezioni, giorni);
+
+        for (int i = 0; i < giorni.length; i++) {
+            JLabel labelGiorno = new JLabel(giorni[i], SwingConstants.CENTER);
+            labelGiorno.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            labelGiorno.setOpaque(true);
+            labelGiorno.setBackground(new Color(70, 130, 180));
+            labelGiorno.setForeground(Color.WHITE);
+            labelGiorno.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.BLACK),
+                    BorderFactory.createEmptyBorder(8, 5, 8, 5)
+            ));
+            c.gridx = i;
+            c.gridy = 0;
+            c.gridheight = 1;
+            pannelloOrario.add(labelGiorno, c);
+        }
+
+        for (int giornoIndex = 0; giornoIndex < giorni.length; giornoIndex++) {
+            String giorno = giorni[giornoIndex].toLowerCase();
+            ArrayList<Lezione> lezioniGiorno = getLezioniPerGiorno(lezioni, giorno);
+
+            int riga = 1;
+            for (Lezione lezione : lezioniGiorno) {
+                JPanel panelLezione = creaPanelLezione(lezione);
+
+                c.gridx = giornoIndex;
+                c.gridy = riga;
+                c.gridheight = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+                c.insets = new Insets(1, 1, 1, 1);
+
+                pannelloOrario.add(panelLezione, c);
+                riga += c.gridheight;
+            }
+
+            while (riga <= maxOrePerGiorno) {
+                JPanel panelVuoto = new JPanel(new BorderLayout());
+                panelVuoto.setBackground(Color.WHITE);
+                panelVuoto.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+
+                c.gridx = giornoIndex;
+                c.gridy = riga;
+                c.gridheight = 1;
+                pannelloOrario.add(panelVuoto, c);
+                riga++;
+            }
+        }
+
+        for (Component comp : pannelloOrario.getComponents()) {
+            if (comp instanceof JPanel) {
+                comp.setPreferredSize(new Dimension(120, 60));
+            }
+        }
+
+        JScrollPane scrollPane = new JScrollPane(pannelloOrario);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        this.add(scrollPane, BorderLayout.CENTER);
+    }
+
+    public TabellaOraria(Docente docente) {
+        setLayout(new BorderLayout());
+        ArrayList<Lezione> lezioniGiorno = new ArrayList<>();
         JLabel titolo = new JLabel("Orario della classe: " + classe.getSezione(), SwingConstants.CENTER);
         titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titolo.setForeground(new Color(50, 50, 70));

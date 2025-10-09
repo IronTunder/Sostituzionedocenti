@@ -43,6 +43,14 @@ public class Lezione implements Serializable {
         return "2h".equals(durata) || "2.0".equals(durata);
     }
 
+    public boolean insegnaNellaLezione(String cognomeDocente){
+        for (String s : cognomi) {
+            if (s.equals(cognomeDocente)) {
+                return true;
+            }
+        }
+        return false;
+    }
     public String getCognomiFormattati() {
         return String.join(", ", cognomi);
     }

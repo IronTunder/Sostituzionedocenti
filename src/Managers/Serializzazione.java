@@ -179,6 +179,10 @@ public class Serializzazione implements AutoCloseable {
             } catch (IOException e) {
                 System.err.println("Errore durante la chiusura della risorsa: " + e.getMessage());
             }
+            oos = null;
+            ois = null;
+            fis = null;
+            fos = null;
         }
     }
 

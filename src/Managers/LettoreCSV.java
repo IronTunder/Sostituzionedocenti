@@ -1,5 +1,7 @@
 package Managers;
 
+import Entities.Docente;
+import Entities.Lezione;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
@@ -26,6 +28,7 @@ public class LettoreCSV {
 
                 processaRiga(entry, gestoreDati);
             }
+
             gestoreDati.organizzaClassi();
             gestoreDati.organizzaDocenti();
         }
@@ -45,7 +48,6 @@ public class LettoreCSV {
             
             if (!classe.isEmpty()) {
                 gestoreDati.creaLezione(numero, durata, materia, cognomi, classe, coDocente, giorno, oraInizio);
-
                 
                 String[] cognomiArray = cognomi.split(";");
                 for (String cognome : cognomiArray) {

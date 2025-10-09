@@ -52,6 +52,13 @@ public class GestoreDati implements Serializable {
 
     public void organizzaDocenti() {
         listaDocenti.sort(Comparator.comparing(Docente::getCognome));
+        for (Lezione lezione : listaLezioni) {
+            for (Docente docente : listaDocenti) {
+                if(lezione.insegnaNellaLezione(docente.getCognome())) {
+                    docente.aggiungiLezione(lezione);
+                }
+            }
+        }
     }
 
     public void creaOrarioClasse(String sezione) {
@@ -78,6 +85,12 @@ public class GestoreDati implements Serializable {
                 .orElse(null);
     }
 
+    public Lezione getLezioneByNumero(int numero) {
+        return listaLezioni.stream()
+                .filter(lezione -> lezione.getNumero() == numero)
+                .findFirst()
+                .orElse(null);
+    }
     
     public boolean esisteClasse(String sezione) {
         return listaClassi.stream().anyMatch(classe -> classe.getSezione().equals(sezione));
