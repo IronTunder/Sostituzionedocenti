@@ -16,6 +16,7 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final Color COLORE_SECONDARIO = new Color(46, 139, 87);
     private final Color COLORE_TESTO = new Color(0, 0, 0);
     private ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
+    private ArrayList<Docente> docenti;
     private JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
     private JLabel conteggioLabel = new JLabel("Docenti selezionati: " + contaSelezionati());
 
@@ -26,7 +27,7 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         this.setLayout(new BorderLayout(0, 20));
         this.getContentPane().setBackground(COLORE_SFONDO);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
+        this.docenti = gestoreDati.getListaDocenti();
         
         JLabel inizio = new JLabel("Seleziona Docenti Assenti", SwingConstants.CENTER);
         inizio.setFont(new Font("Segoe UI", Font.BOLD, 28));
@@ -34,9 +35,10 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         inizio.setBorder(new EmptyBorder(20, 0, 10, 0));
         this.add(inizio, BorderLayout.NORTH);
 
-        ArrayList<Docente> docenti = gestoreDati.getListaDocenti();
 
-        
+
+        JTextField sborra = new  JTextField();
+        sborra.setActionCommand("JTextField");
         JPanel panelCentro = new JPanel();
         panelCentro.setBackground(COLORE_SFONDO);
         panelCentro.setBorder(new EmptyBorder(20, 60, 20, 60));
@@ -192,6 +194,10 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if(e.getActionCommand().equals("CheckBox")) {
             aggiornaPannelloConteggio();
+        }
+        else if(e.getActionCommand().equals("JTextField")) {
+            JTextField  jTextField = (JTextField) e.getSource();
+
         }
     }
 }

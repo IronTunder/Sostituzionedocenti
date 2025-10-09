@@ -158,13 +158,18 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         labelFileSelezionato.setText(nomeFile);
     }
 
+
     private void cambiaFileSelezionato() {
-        int scelta = JOptionPane.showConfirmDialog(
+        Object[] options = {"<html><font color=#000000>Si</font></html>","<html><font color=#000000>No</font></html>"};
+        int scelta = JOptionPane.showOptionDialog(
                 this,
                 "Vuoi chiudere questa finestra e selezionare un nuovo file?\nTutti i progressi non salvati andranno persi.",
                 "Cambia File",
                 JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
         );
 
         if (scelta == JOptionPane.YES_OPTION) {
