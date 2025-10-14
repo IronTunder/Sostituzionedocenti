@@ -11,7 +11,7 @@ public class Lezione implements Serializable {
     private final String durata;
     private final String materia;
     private final String[] cognomi;
-    private final String classe;
+    private final String sezione;
     private final String coDocente;
     private final String giorno;
     private final String oraInizio;
@@ -22,10 +22,21 @@ public class Lezione implements Serializable {
         this.durata = durata;
         this.materia = materia;
         this.cognomi = cognomi.split(";");
-        this.classe = classe;
+        this.sezione = classe;
         this.coDocente = coDocente;
         this.giorno = giorno;
         this.oraInizio = oraInizio;
+    }
+
+    public Lezione(Lezione lezione) {
+        this.numero = lezione.getNumero();
+        this.durata = lezione.getDurata();
+        this.materia = lezione.getMateria();
+        this.cognomi = lezione.getCognomi();
+        this.sezione = lezione.getSezione();
+        this.coDocente = lezione.getCoDocente();
+        this.giorno = lezione.getGiorno();
+        this.oraInizio = lezione.getOraInizio();
     }
 
     
@@ -33,7 +44,7 @@ public class Lezione implements Serializable {
     public String getDurata() { return durata; }
     public String getMateria() { return materia; }
     public String[] getCognomi() { return cognomi.clone(); } 
-    public String getClasse() { return classe; }
+    public String getSezione() { return sezione; }
     public String getCoDocente() { return coDocente; }
     public String getGiorno() { return giorno; }
     public String getOraInizio() { return oraInizio; }
@@ -66,6 +77,6 @@ public class Lezione implements Serializable {
     @Override
     public String toString() {
         return String.format("Lezione %d: %s - %s (%s) - %s",
-                numero, materia, getCognomiFormattati(), classe, giorno);
+                numero, materia, getCognomiFormattati(), sezione, giorno);
     }
 }

@@ -67,7 +67,7 @@ public class GestoreDati implements Serializable {
                 .findFirst();
 
         classeOpt.ifPresent(classe -> listaLezioni.stream()
-                .filter(lezione -> lezione.getClasse().equals(sezione))
+                .filter(lezione -> lezione.getSezione().equals(sezione))
                 .forEach(classe::aggiungiLezioneEDocente));
     }
 
@@ -102,7 +102,7 @@ public class GestoreDati implements Serializable {
 
     public ArrayList<Lezione> getLezioniPerClasse(String sezione) {
         return listaLezioni.stream()
-                .filter(lezione -> lezione.getClasse().equals(sezione))
+                .filter(lezione -> lezione.getSezione().equals(sezione))
                 .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 

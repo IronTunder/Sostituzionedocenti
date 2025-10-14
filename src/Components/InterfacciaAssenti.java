@@ -2,6 +2,7 @@ package Components;
 
 import Entities.Docente;
 import Managers.GestoreDati;
+import Managers.GestoreSostituzioni;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -11,6 +12,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap; // AGGIUNTA
+import java.util.Map;      // AGGIUNTA
 
 public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final Color COLORE_SFONDO = new Color(255, 255, 255);
@@ -23,6 +26,10 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     private ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
     private ArrayList<Docente> docenti;
     private ArrayList<Docente> docentiFiltrati;
+
+    private Map<JCheckBox, Docente> mappaCheckBoxDocente = new HashMap<>(); // AGGIUNTA
+
+    private GestoreSostituzioni gestoreSostituzioni;
 
     private JPanel panelCentro;
     private JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
@@ -45,19 +52,16 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         panelNord.setBorder(new EmptyBorder(20, 40, 20, 40));
         this.add(panelNord, BorderLayout.NORTH);
 
-        
         JLabel titolo = new JLabel("Seleziona Docenti Assenti", SwingConstants.CENTER);
         titolo.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titolo.setForeground(COLORE_PRIMARIO);
         titolo.setBorder(new EmptyBorder(0, 0, 20, 0));
         panelNord.add(titolo, BorderLayout.NORTH);
 
-        
         JPanel panelRicerca = new JPanel(new BorderLayout(10, 0));
         panelRicerca.setBackground(COLORE_SFONDO);
         panelRicerca.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        
         campoRicerca = new JTextField();
         campoRicerca.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         campoRicerca.setForeground(COLORE_TESTO);
@@ -67,13 +71,9 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 BorderFactory.createEmptyBorder(10, 15, 10, 40)
         ));
         campoRicerca.setPreferredSize(new Dimension(300, 40));
-
-        
         campoRicerca.setText("Cerca per cognome...");
         campoRicerca.setForeground(Color.GRAY);
 
-
-        
         JButton cancellaRicerca = new JButton("X");
         cancellaRicerca.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         cancellaRicerca.setForeground(Color.GRAY);
@@ -83,7 +83,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         cancellaRicerca.setCursor(new Cursor(Cursor.HAND_CURSOR));
         cancellaRicerca.setVisible(false);
 
-        
         JPanel panelRicercaInterno = new JPanel(new BorderLayout());
         panelRicercaInterno.setBackground(Color.WHITE);
         panelRicercaInterno.add(cancellaRicerca, BorderLayout.EAST);
@@ -94,7 +93,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         panelRicerca.add(campoRicerca, BorderLayout.CENTER);
         panelNord.add(panelRicerca, BorderLayout.CENTER);
 
-        
         campoRicerca.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 campoRicerca.setBorder(BorderFactory.createCompoundBorder(
@@ -120,7 +118,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
             }
         });
 
-        
         campoRicerca.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -144,10 +141,8 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
             }
         });
 
-        
         campoRicerca.addActionListener(this);
 
-        
         cancellaRicerca.addActionListener(e -> {
             campoRicerca.setText("");
             campoRicerca.setForeground(Color.GRAY);
@@ -157,7 +152,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
             campoRicerca.requestFocus();
         });
 
-        
         cancellaRicerca.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 cancellaRicerca.setForeground(COLORE_PRIMARIO);
@@ -169,13 +163,11 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
             }
         });
 
-        
         panelCentro = new JPanel();
         panelCentro.setBackground(COLORE_SFONDO);
         panelCentro.setBorder(new EmptyBorder(20, 60, 20, 60));
         panelCentro.setLayout(new BoxLayout(panelCentro, BoxLayout.Y_AXIS));
 
-        
         JScrollPane scrollPane = new JScrollPane(panelCentro);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
                 new EmptyBorder(10, 30, 10, 30),
@@ -189,7 +181,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
 
         this.add(scrollPane, BorderLayout.CENTER);
 
-        
         pannelloBottoni.setBackground(COLORE_SFONDO);
         pannelloBottoni.setBorder(new EmptyBorder(10, 0, 20, 0));
 
@@ -201,15 +192,27 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         bottoneConferma.addActionListener(e -> {
             int selezionati = contaSelezionati();
             if (selezionati > 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Sostituzioni confermate per " + selezionati + " docenti!",
+                Object[] options = {"<html><font color=#000000>Conferma</font></html>", "<html><font color=#000000>Indietro</font></html>"};
+                int scelta = JOptionPane.showOptionDialog(
+                        this,
+                        "Confermi l'assenza di " + selezionati + " docenti?\nLe sostituzioni verranno calcolate in base ai docenti selezionati.",
                         "Conferma",
-                        JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        options,
+                        options[0]
+                );
+                if (scelta == JOptionPane.YES_OPTION) {
+                    gestoreSostituzioni = new GestoreSostituzioni(gestoreDati,getDocentiAssenti());
+                    dispose();
+                    // TODO: Avvia calcolo sostituzioni
+                }
             } else {
                 JOptionPane.showMessageDialog(this,
                         "Nessun docente selezionato.",
                         "Attenzione",
-                        JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -222,7 +225,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
 
         this.add(pannelloBottoni, BorderLayout.SOUTH);
 
-        
         aggiornaLista();
         this.setVisible(true);
     }
@@ -243,10 +245,10 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         aggiornaLista();
     }
 
-
     private void aggiornaLista() {
         panelCentro.removeAll();
         checkBoxes.clear();
+        mappaCheckBoxDocente.clear(); // MODIFICA: resetta mappa ogni volta
 
         if (docentiFiltrati.isEmpty()) {
             JLabel nessunRisultato = new JLabel("Nessun docente trovato", SwingConstants.CENTER);
@@ -271,6 +273,8 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 checkBox.setActionCommand("CheckBox");
                 checkBox.addActionListener(this);
                 checkBox.setBackground(COLORE_SFONDO);
+
+                mappaCheckBoxDocente.put(checkBox, doc); // AGGIUNTA
 
                 JPanel checkPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
                 checkPanel.setBackground(COLORE_SFONDO);
@@ -325,6 +329,7 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                         BorderFactory.createEmptyBorder(8, 16, 8, 16)
                 ));
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 bottone.setBackground(coloreSfondo);
                 bottone.setBorder(BorderFactory.createCompoundBorder(
@@ -335,6 +340,19 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         });
 
         return bottone;
+    }
+
+    private ArrayList<Docente> getDocentiAssenti(){
+        ArrayList<Docente> docentiAssenti = new ArrayList<>();
+        for (JCheckBox checkBox : checkBoxes) {
+            if (checkBox.isSelected()) {
+                Docente docente = mappaCheckBoxDocente.get(checkBox);
+                if (docente != null) {
+                    docentiAssenti.add(docente);
+                }
+            }
+        }
+        return docentiAssenti;
     }
 
     private void aggiornaPannelloConteggio() {

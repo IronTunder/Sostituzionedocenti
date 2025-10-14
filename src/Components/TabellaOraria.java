@@ -200,7 +200,7 @@ public class TabellaOraria extends JPanel {
         panelLezione.add(labelMateria, BorderLayout.CENTER);
 
         if(isDocente){
-            JLabel labelClasse = new JLabel(lezione.getClasse(), SwingConstants.CENTER);
+            JLabel labelClasse = new JLabel(lezione.getSezione(), SwingConstants.CENTER);
             labelClasse.setFont(fontNormale);
             labelClasse.setOpaque(false);
             panelLezione.add(labelClasse, BorderLayout.SOUTH);

@@ -143,7 +143,7 @@ public class Serializzazione implements AutoCloseable {
     private void ricostruisciRelazioni() {
         for (Classe classe : gestoreDati.getListaClassi()) {
             for (Lezione lezione : gestoreDati.getListaLezioni()) {
-                if (lezione.getClasse().equals(classe.getSezione())) {
+                if (lezione.getSezione().equals(classe.getSezione())) {
                     classe.aggiungiLezioneEDocente(lezione);
                 }
             }
