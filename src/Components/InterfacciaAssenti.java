@@ -350,6 +350,8 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 if (docente != null) {
                     docentiAssenti.add(docente);
                 }
+                else
+                    System.out.println("Docente non trovato");
             }
         }
         return docentiAssenti;
