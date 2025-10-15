@@ -12,7 +12,7 @@ public class Docente implements Serializable {
 
     private final String cognome;
     private final ArrayList<Classe> listaClassi;
-    private final ArrayList<Lezione> listaLezioni;
+    private ArrayList<Lezione> listaLezioni;
     private final ArrayList<String> listaMaterie;
     private final ArrayList<String> listaOrari;
 
@@ -78,6 +78,13 @@ public class Docente implements Serializable {
         return listaMaterie.contains(materia);
     }
 
+    public boolean haDisposizione(String giorno, String oraInizio) {
+        return listaLezioni.stream()
+                .anyMatch(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno) &&
+                        lezione.getOraInizio().equals(oraInizio) &&
+                        lezione.getMateria().equalsIgnoreCase("Disposizione"));
+    }
+
     public ArrayList<Lezione> getListaLezioni() {
         return listaLezioni;
     }
@@ -92,7 +99,11 @@ public class Docente implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Docente: %s (Classi: %d, Materie: %d)",
-                cognome, listaClassi.size(), listaMaterie.size());
+        return "Docente{" +
+                "listaMaterie=" + listaMaterie +
+                ", listaLezioni=" + listaLezioni +
+                ", listaClassi=" + listaClassi +
+                ", cognome='" + cognome + '\'' +
+                '}';
     }
 }

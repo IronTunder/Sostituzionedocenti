@@ -205,8 +205,11 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 );
                 if (scelta == JOptionPane.YES_OPTION) {
                     gestoreSostituzioni = new GestoreSostituzioni(gestoreDati,getDocentiAssenti());
+                    JFrame frame = new JFrame("Skibidi");
+                    frame.setVisible(true);
+                    frame.setSize(400, 300);
+                    frame.add(gestoreSostituzioni.creaPanelSostituzioni());
                     dispose();
-                    // TODO: Avvia calcolo sostituzioni
                 }
             } else {
                 JOptionPane.showMessageDialog(this,

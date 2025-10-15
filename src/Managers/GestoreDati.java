@@ -7,6 +7,7 @@ import Entities.Lezione;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Optional;
 
@@ -53,11 +54,16 @@ public class GestoreDati implements Serializable {
     public void organizzaDocenti() {
         listaDocenti.sort(Comparator.comparing(Docente::getCognome));
         for (Lezione lezione : listaLezioni) {
+            System.out.println(Arrays.toString(lezione.getCognomi()));
             for (Docente docente : listaDocenti) {
                 if(lezione.insegnaNellaLezione(docente.getCognome())) {
                     docente.aggiungiLezione(lezione);
                 }
             }
+        }
+        for (Docente docente : listaDocenti) {
+            System.out.println(docente.getCognome());
+            System.out.println(docente.getListaLezioni().toString());
         }
     }
 

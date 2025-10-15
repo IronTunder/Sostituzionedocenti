@@ -2,6 +2,7 @@ package Entities;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class Lezione implements Serializable {
     @Serial
@@ -21,24 +22,12 @@ public class Lezione implements Serializable {
         this.numero = numero;
         this.durata = durata;
         this.materia = materia;
-        this.cognomi = cognomi.split(";");
+        this.cognomi = dividiCognomi(cognomi);
         this.sezione = classe;
         this.coDocente = coDocente;
         this.giorno = giorno;
         this.oraInizio = oraInizio;
     }
-
-    public Lezione(Lezione lezione) {
-        this.numero = lezione.getNumero();
-        this.durata = lezione.getDurata();
-        this.materia = lezione.getMateria();
-        this.cognomi = lezione.getCognomi();
-        this.sezione = lezione.getSezione();
-        this.coDocente = lezione.getCoDocente();
-        this.giorno = lezione.getGiorno();
-        this.oraInizio = lezione.getOraInizio();
-    }
-
     
     public int getNumero() { return numero; }
     public String getDurata() { return durata; }
@@ -49,14 +38,21 @@ public class Lezione implements Serializable {
     public String getGiorno() { return giorno; }
     public String getOraInizio() { return oraInizio; }
 
-    
+
+    private String[] dividiCognomi(String cognomi) {
+        if (cognomi == null || cognomi.trim().isEmpty()) {
+            return new String[0];
+        }
+        return cognomi.replaceAll(" ","").split(";");
+    }
+
     public boolean isBioraria() {
         return "2h".equals(durata) || "2.0".equals(durata);
     }
 
     public boolean insegnaNellaLezione(String cognomeDocente){
         for (String s : cognomi) {
-            if (s.equals(cognomeDocente)) {
+            if (s.equalsIgnoreCase(cognomeDocente)) {
                 return true;
             }
         }
@@ -76,7 +72,15 @@ public class Lezione implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Lezione %d: %s - %s (%s) - %s",
-                numero, materia, getCognomiFormattati(), sezione, giorno);
+        return "Lezione{" +
+                "numero=" + numero +
+                ", durata='" + durata + '\'' +
+                ", materia='" + materia + '\'' +
+                ", cognomi=" + Arrays.toString(cognomi) +
+                ", sezione='" + sezione + '\'' +
+                ", coDocente='" + coDocente + '\'' +
+                ", giorno='" + giorno + '\'' +
+                ", oraInizio='" + oraInizio + '\'' +
+                '}';
     }
 }

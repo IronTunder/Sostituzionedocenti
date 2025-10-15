@@ -24,7 +24,6 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
     private final Color COLORE_BORDO_FOCUS = new Color(70, 130, 180);
 
     // rimosse le JCheckBox
-    // private ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
     private ArrayList<Docente> docenti;
     private ArrayList<Docente> docentiFiltrati;
 
