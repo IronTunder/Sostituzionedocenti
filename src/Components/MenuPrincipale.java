@@ -1,24 +1,24 @@
 package Components;
 
 import Entities.Classe;
+import Entities.Docente;
 import Managers.GestoreDati;
 import Managers.Serializzazione;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class MenuPrincipale extends JFrame {
 
     private final JComboBox<String> comboClassi = new JComboBox<>();
-
+    private final JComboBox<String> comboDocenti = new JComboBox<>();
     private JPanel pannelloOrario;
     private JPanel pannelloSinistra;
-
     private final GestoreDati gestoreDati;
     private final Serializzazione serializzazione;
-
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
     private final Color COLORE_SECONDARIO = new Color(100, 149, 237);
     private final Color COLORE_SFONDO = new Color(248, 250, 252);
@@ -38,10 +38,11 @@ public class MenuPrincipale extends JFrame {
             UIManager.put("Button.foreground", Color.WHITE);
         } catch (Exception ignored) {}
 
-        inizializzaUI(gestoreDati.getListaClassi());
+        inizializzaUI(gestoreDati.getListaClassi(), gestoreDati.getListaDocenti());
+
     }
 
-    private void inizializzaUI(ArrayList<Classe> classi) {
+    private void inizializzaUI(ArrayList<Classe> classi, ArrayList<Docente> docente) {
 
         this.setTitle("Gestione Orario Scolastico");
         this.setSize(1280, 700);
@@ -59,7 +60,7 @@ public class MenuPrincipale extends JFrame {
         this.add(pannelloCentro, BorderLayout.CENTER);
 
 
-        pannelloSinistra = creaPannelloSinistro(classi);
+        pannelloSinistra = creaPannelloSinistro(classi, docente);
         pannelloCentro.add(pannelloSinistra, BorderLayout.CENTER);
 
 
@@ -95,12 +96,12 @@ public class MenuPrincipale extends JFrame {
         return pannelloCentro;
     }
 
-    private JPanel creaPannelloSinistro(ArrayList<Classe> classi) {
+    private JPanel creaPannelloSinistro(ArrayList<Classe> classi, ArrayList<Docente> docente) {
         JPanel pannelloSinistra = new JPanel(new BorderLayout(15, 15));
         pannelloSinistra.setBackground(COLORE_SFONDO);
 
 
-        JPanel pannelloSelezione = creaPannelloSelezioneClasse(classi);
+        JPanel pannelloSelezione = creaPannelloSelezioneClasse(classi, docente);
         pannelloSinistra.add(pannelloSelezione, BorderLayout.NORTH);
 
 
@@ -118,21 +119,31 @@ public class MenuPrincipale extends JFrame {
         return pannelloSinistra;
     }
 
-    private JPanel creaPannelloSelezioneClasse(ArrayList<Classe> classi) {
+    private JPanel creaPannelloSelezioneClasse(ArrayList<Classe> classi, ArrayList<Docente> docenti) {
         JPanel pannelloSelezione = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton selezioneDocenti = new JButton("Orario docenti");
+        JButton selezioneClassi = new JButton("Orario classi");
+        pannelloSelezione.add(selezioneDocenti);
+        pannelloSelezione.add(selezioneClassi);
+
         pannelloSelezione.setBackground(COLORE_SFONDO);
         pannelloSelezione.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(new Color(200, 200, 210)),
-                        "Selezione Classe"
+                        "Selezione"
                 ),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
+
+        // Pannello per la selezione classe (visibile inizialmente)
+        JPanel pannelloSelezioneClasse = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        pannelloSelezioneClasse.setBackground(COLORE_SFONDO);
 
         JLabel labelClasse = new JLabel("Classe:");
         labelClasse.setFont(new Font("Segoe UI", Font.BOLD, 13));
         labelClasse.setForeground(COLORE_TESTO);
 
+        comboClassi.removeAllItems();
         classi.forEach(classe -> {
             comboClassi.addItem(classe.getSezione());
         });
@@ -144,13 +155,74 @@ public class MenuPrincipale extends JFrame {
         ));
         comboClassi.setMaximumRowCount(12);
 
+        pannelloSelezioneClasse.add(labelClasse);
+        pannelloSelezioneClasse.add(comboClassi);
 
-        comboClassi.addActionListener(e -> aggiornaTabella());
+        // Pannello per la selezione docente (inizialmente nascosto)
+        JPanel pannelloSelezioneDocente = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        pannelloSelezioneDocente.setBackground(COLORE_SFONDO);
 
-        pannelloSelezione.add(labelClasse);
-        pannelloSelezione.add(comboClassi);
+        JLabel labelDocente = new JLabel("Docente:");
+        labelDocente.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        labelDocente.setForeground(COLORE_TESTO);
+
+        comboDocenti.removeAllItems();
+        docenti.forEach(docente -> {
+            comboDocenti.addItem(docente.getCognome());
+        });
+        comboDocenti.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        comboDocenti.setBackground(Color.WHITE);
+        comboDocenti.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(180, 180, 190)),
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+        comboDocenti.setMaximumRowCount(12);
+
+        pannelloSelezioneDocente.add(labelDocente);
+        pannelloSelezioneDocente.add(comboDocenti);
+        pannelloSelezioneDocente.setVisible(false); // Inizialmente nascosto
+
+        // Aggiungi entrambi i pannelli al pannello principale
+        pannelloSelezione.add(pannelloSelezioneClasse);
+        pannelloSelezione.add(pannelloSelezioneDocente);
+
+        // Action Listeners
+        comboClassi.addActionListener(a -> aggiornaTabellaClasse());
+        comboDocenti.addActionListener(a -> aggiornaTabellaDocente());
+
+        selezioneClassi.addActionListener(e -> {
+            pannelloSelezioneClasse.setVisible(true);
+            pannelloSelezioneDocente.setVisible(false);
+            aggiornaTabellaClasse();
+        });
+
+        selezioneDocenti.addActionListener(e -> {
+            pannelloSelezioneClasse.setVisible(false);
+            pannelloSelezioneDocente.setVisible(true);
+            aggiornaTabellaDocente();
+        });
 
         return pannelloSelezione;
+    }
+
+    private void aggiornaTabellaClasse() {
+        pannelloOrario.removeAll();
+        Classe nuovaClasse = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
+        if (nuovaClasse != null) {
+            pannelloOrario.add(new TabellaOraria(nuovaClasse), BorderLayout.CENTER);
+        }
+        pannelloOrario.revalidate();
+        pannelloOrario.repaint();
+    }
+
+    private void aggiornaTabellaDocente() {
+        pannelloOrario.removeAll();
+        Docente docenteSelezionato = gestoreDati.getDocenteByCognome((String) comboDocenti.getSelectedItem());
+        if (docenteSelezionato != null) {
+            pannelloOrario.add(new TabellaOraria(docenteSelezionato), BorderLayout.CENTER);
+        }
+        pannelloOrario.revalidate();
+        pannelloOrario.repaint();
     }
 
     private JPanel creaPannelloDestro() {
