@@ -1,6 +1,8 @@
 package Components;
 
+import Entities.Classe;
 import Managers.GestoreDati;
+import Managers.LettoreCSV;
 import Managers.Serializzazione;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -96,7 +98,7 @@ public class InterfacciaAggiornamentoFile extends JFrame {
             }
         });
 
-        bottoneCambiaFile.addActionListener(e -> cambiaFileSelezionato());
+        //bottoneCambiaFile.addActionListener(e -> cambiaFileSelezionato());
 
         
         JPanel pannelloBottoneCambio = new JPanel(new FlowLayout());
@@ -131,6 +133,7 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         });
     }
 
+
     private JButton creaPulsante(String testo, Color colore) {
         JButton bottone = new JButton(testo);
         bottone.setFont(fontBottoni);
@@ -158,42 +161,6 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         labelFileSelezionato.setText(nomeFile);
     }
 
-
-    private void cambiaFileSelezionato() {
-        Object[] options = {"<html><font color=#000000>Si</font></html>","<html><font color=#000000>No</font></html>"};
-        int scelta = JOptionPane.showOptionDialog(
-                this,
-                "Vuoi chiudere questa finestra e selezionare un nuovo file?\nTutti i progressi non salvati andranno persi.",
-                "Cambia File",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[0]
-        );
-
-        if (scelta == JOptionPane.YES_OPTION) {
-            serializzazione.eliminaDati();
-            try{
-                new InterfacciaSelezioneFile(new GestoreDati(), serializzazione);
-            }catch (Exception e){
-                JOptionPane.showMessageDialog(this, "Errore nell'apertura della pagina iniziale: " + e.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
-            }
-            dispose();
-        }
-    }
-
-    private void aggiornaDisposizioni()
-    {
-        JFileChooser fileChooser = new JFileChooser();
-
-    }
-
-    private void aggiornaOrarioClassi()
-    {
-
-    }
-
     private void mostraMessaggio(String testo) {
         JOptionPane.showMessageDialog(this, testo, "Informazione", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -201,7 +168,6 @@ public class InterfacciaAggiornamentoFile extends JFrame {
     public void setFileSelezionato(String nomeFile) {
         aggiornaLabelFileSelezionato(nomeFile);
     }
-
     
     public String getFileSelezionato() {
         return labelFileSelezionato.getText();
