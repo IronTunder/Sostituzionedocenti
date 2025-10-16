@@ -12,8 +12,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.HashMap; // AGGIUNTA
-import java.util.Map;      // AGGIUNTA
+import java.util.HashMap;
+import java.util.Map;
 
 public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final Color COLORE_SFONDO = new Color(255, 255, 255);
@@ -27,7 +27,8 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final ArrayList<Docente> docenti;
     private final ArrayList<Docente> docentiFiltrati;
 
-    private final Map<JCheckBox, Docente> mappaCheckBoxDocente = new HashMap<>(); // AGGIUNTA
+    private final Map<JCheckBox, Docente> mappaCheckBoxDocente = new HashMap<>();
+    private final Map<Docente, Boolean> statoCheckbox = new HashMap<>(); // AGGIUNTA: memorizza lo stato delle checkbox
 
     private GestoreSostituzioni gestoreSostituzioni;
 
@@ -46,6 +47,11 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
 
         this.docenti = new ArrayList<>(gestoreDati.getListaDocenti());
         this.docentiFiltrati = new ArrayList<>(docenti);
+
+        // Inizializza tutte le checkbox come non selezionate
+        for (Docente docente : docenti) {
+            statoCheckbox.put(docente, false);
+        }
 
         JPanel panelNord = new JPanel(new BorderLayout());
         panelNord.setBackground(COLORE_SFONDO);
@@ -230,6 +236,9 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     }
 
     private void filtra(String stringa) {
+        // Salva lo stato corrente delle checkbox prima di filtrare
+        salvaStatoCheckbox();
+
         String q = stringa == null ? "" : stringa.trim().toLowerCase();
         docentiFiltrati.clear();
 
@@ -245,10 +254,22 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         aggiornaLista();
     }
 
+    /**
+     * Salva lo stato corrente di tutte le checkbox nella mappa statoCheckbox
+     */
+    private void salvaStatoCheckbox() {
+        for (JCheckBox checkBox : checkBoxes) {
+            Docente docente = mappaCheckBoxDocente.get(checkBox);
+            if (docente != null) {
+                statoCheckbox.put(docente, checkBox.isSelected());
+            }
+        }
+    }
+
     private void aggiornaLista() {
         panelCentro.removeAll();
         checkBoxes.clear();
-        mappaCheckBoxDocente.clear(); // MODIFICA: resetta mappa ogni volta
+        mappaCheckBoxDocente.clear();
 
         if (docentiFiltrati.isEmpty()) {
             JLabel nessunRisultato = new JLabel("Nessun docente trovato", SwingConstants.CENTER);
@@ -274,7 +295,13 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 checkBox.addActionListener(this);
                 checkBox.setBackground(COLORE_SFONDO);
 
-                mappaCheckBoxDocente.put(checkBox, doc); // AGGIUNTA
+                // Ripristina lo stato della checkbox dalla mappa
+                Boolean statoPrecedente = statoCheckbox.get(doc);
+                if (statoPrecedente != null) {
+                    checkBox.setSelected(statoPrecedente);
+                }
+
+                mappaCheckBoxDocente.put(checkBox, doc);
 
                 JPanel checkPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
                 checkPanel.setBackground(COLORE_SFONDO);
@@ -367,6 +394,12 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
         if ("CheckBox".equals(cmd)) {
+            // Aggiorna immediatamente la mappa statoCheckbox quando una checkbox viene modificata
+            JCheckBox checkBox = (JCheckBox) e.getSource();
+            Docente docente = mappaCheckBoxDocente.get(checkBox);
+            if (docente != null) {
+                statoCheckbox.put(docente, checkBox.isSelected());
+            }
             aggiornaPannelloConteggio();
         }
     }
