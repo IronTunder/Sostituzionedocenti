@@ -12,10 +12,13 @@ import java.util.ArrayList;
 public class MenuPrincipale extends JFrame {
 
     private final JComboBox<String> comboClassi = new JComboBox<>();
+
     private JPanel pannelloOrario;
     private JPanel pannelloSinistra;
+
     private final GestoreDati gestoreDati;
     private final Serializzazione serializzazione;
+
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
     private final Color COLORE_SECONDARIO = new Color(100, 149, 237);
     private final Color COLORE_SFONDO = new Color(248, 250, 252);

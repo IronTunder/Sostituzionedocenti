@@ -23,18 +23,18 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final Color COLORE_BORDO = new Color(200, 200, 200);
     private final Color COLORE_BORDO_FOCUS = new Color(70, 130, 180);
 
-    private ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
-    private ArrayList<Docente> docenti;
-    private ArrayList<Docente> docentiFiltrati;
+    private final ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
+    private final ArrayList<Docente> docenti;
+    private final ArrayList<Docente> docentiFiltrati;
 
-    private Map<JCheckBox, Docente> mappaCheckBoxDocente = new HashMap<>(); // AGGIUNTA
+    private final Map<JCheckBox, Docente> mappaCheckBoxDocente = new HashMap<>(); // AGGIUNTA
 
     private GestoreSostituzioni gestoreSostituzioni;
 
-    private JPanel panelCentro;
-    private JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
-    private JLabel conteggioLabel = new JLabel("Docenti selezionati: 0");
-    private JTextField campoRicerca;
+    private final JPanel panelCentro;
+    private final JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
+    private final JLabel conteggioLabel = new JLabel("Docenti selezionati: 0");
+    private final JTextField campoRicerca;
 
     public InterfacciaAssenti(GestoreDati gestoreDati) {
         this.setTitle("Sostituzioni");
@@ -205,10 +205,7 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 );
                 if (scelta == JOptionPane.YES_OPTION) {
                     gestoreSostituzioni = new GestoreSostituzioni(gestoreDati,getDocentiAssenti());
-                    JFrame frame = new JFrame("Skibidi");
-                    frame.setVisible(true);
-                    frame.setSize(400, 300);
-                    frame.add(gestoreSostituzioni.creaPanelSostituzioni());
+                    gestoreSostituzioni.risultato();
                     dispose();
                 }
             } else {
