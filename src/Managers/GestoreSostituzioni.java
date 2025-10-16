@@ -5,28 +5,29 @@ import Entities.Docente;
 import Entities.Lezione;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.List;
 import java.time.LocalDateTime;
 import java.util.*;
 
 public class GestoreSostituzioni {
-    private GestoreDati gestoreDati;
-    private ArrayList<Docente> docentiAssenti;
-    private ArrayList<String> docentiSostitutivi;
-    private Map<String, Map<String, String>> tabellaSostituzioni;
-    private String giornataOdierna;
+    private final GestoreDati gestoreDati;
+
+    private final ArrayList<Docente> docentiAssenti;
+    private final ArrayList<String> docentiSostitutivi;
+
+    private final String giornataOdierna;
+
+    private final String[] orari = new String[]{"8:00","9:00","10:00","11,00","12:00","13:00","14:00","15:00","16:00"};
+    private final String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
 
     public GestoreSostituzioni(GestoreDati gestoreDati, ArrayList<Docente> docentiAssenti) {
         this.docentiAssenti = docentiAssenti;
         this.gestoreDati = gestoreDati;
         this.docentiSostitutivi = new ArrayList<>();
-        this.tabellaSostituzioni = new TreeMap<>();
         int giornoSettimana = LocalDateTime.now().getDayOfWeek().getValue();
         if(giornoSettimana == 7)
             giornoSettimana = 1;
-        String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
+
         giornataOdierna = giorni[giornoSettimana - 1];
 
         for (Docente docente : docentiAssenti) {
@@ -156,164 +157,31 @@ public class GestoreSostituzioni {
         return false;
     }
 
-    public JPanel creaPanelSostituzioni() {
-        // Inizializza la struttura dati per la tabella
-        inizializzaTabellaSostituzioni();
+    public JFrame risultato(){
+        JFrame risultato = new  JFrame("Risultato");
+        risultato.setVisible(true);
+        risultato.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
 
-        // Crea il modello della tabella
-        DefaultTableModel model = creaModelloTabella();
-
-        // Crea la tabella
-        JTable table = new JTable(model);
-        table.setRowHeight(30);
-        table.setFont(new Font("Arial", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
-
-        // Imposta la larghezza delle colonne
-        table.getColumnModel().getColumn(0).setPreferredWidth(80); // Colonna Ore
-        for (int i = 1; i < table.getColumnCount(); i++) {
-            table.getColumnModel().getColumn(i).setPreferredWidth(120);
+        for (int i = 0; i < orari.length; i++){
+            JPanel cella = new  JPanel(new BorderLayout());
+            cella.add(new JLabel(orari[i]),BorderLayout.CENTER);
+            cella.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            c.gridx = 0;
+            c.gridy = i;
+            risultato.add(cella, c);
         }
 
-        // Crea il panel con scroll
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(800, 400));
-
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // Titolo
-        JLabel titolo = new JLabel("SOSTITUZIONI - " + giornataOdierna.toUpperCase(), JLabel.CENTER);
-        titolo.setFont(new Font("Arial", Font.BOLD, 16));
-        titolo.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-
-        panel.add(titolo, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    private void inizializzaTabellaSostituzioni() {
-        tabellaSostituzioni.clear();
-
-        // Raccoglie tutte le ore del giorno
-        Set<String> tutteLeOre = new TreeSet<>();
-        ArrayList<String> cognomiAssenti = new ArrayList<>();
-
-        // Prende i cognomi degli assenti
-        for (Docente docente : docentiAssenti) {
-            cognomiAssenti.add(docente.getCognome());
+        for (int i = 0; i < giorni.length; i++){
+            JPanel cella = new  JPanel(new BorderLayout());
+            cella.add(new JLabel(giorni[i]),BorderLayout.CENTER);
+            cella.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            c.gridx = i;
+            c.gridy = 0;
+            risultato.add(cella, c);
         }
 
-        // Raccoglie tutte le ore delle lezioni degli assenti
-        for (Docente docente : docentiAssenti) {
-            for (Lezione lezione : docente.getListaLezioni()) {
-                if (lezione.getGiorno().equalsIgnoreCase(giornataOdierna)) {
-                    String oraKey = lezione.getOraInizio() + "-" +
-                            calcolaOraFine(lezione.getOraInizio(), lezione.getDurata());
-                    tutteLeOre.add(oraKey);
-
-                    // Inizializza la mappa per questa ora se non esiste
-                    if (!tabellaSostituzioni.containsKey(oraKey)) {
-                        tabellaSostituzioni.put(oraKey, new HashMap<>());
-                    }
-                }
-            }
-        }
-
-        // Popola la tabella con le sostituzioni
-        for (Docente docente : docentiAssenti) {
-            for (Lezione lezione : docente.getListaLezioni()) {
-                if (lezione.getGiorno().equalsIgnoreCase(giornataOdierna)) {
-                    String oraKey = lezione.getOraInizio() + "-" +
-                            calcolaOraFine(lezione.getOraInizio(), lezione.getDurata());
-
-                    // Trova il sostituto per questa lezione
-                    String sostituto = trovaSostitutoPerLezione(docente, lezione);
-                    tabellaSostituzioni.get(oraKey).put(docente.getCognome(), sostituto);
-                }
-            }
-        }
-    }
-
-    private DefaultTableModel creaModelloTabella() {
-        // Prepara i cognomi degli assenti per le colonne
-        ArrayList<String> cognomiAssenti = new ArrayList<>();
-        for (Docente docente : docentiAssenti) {
-            cognomiAssenti.add(docente.getCognome() + " (assente)");
-        }
-
-        // Crea l'array delle colonne
-        Vector<String> colonne = new Vector<>();
-        colonne.add("Ora");
-        colonne.addAll(cognomiAssenti);
-
-        // Crea i dati delle righe
-        Vector<Vector<String>> dati = new Vector<>();
-
-        for (String ora : tabellaSostituzioni.keySet()) {
-            Vector<String> riga = new Vector<>();
-            riga.add(ora);
-
-            Map<String, String> sostituzioniOra = tabellaSostituzioni.get(ora);
-
-            for (String cognomeAssente : getCognomiAssenti()) {
-                String sostituto = sostituzioniOra.get(cognomeAssente);
-                riga.add(sostituto != null ? sostituto : "-");
-            }
-
-            dati.add(riga);
-        }
-
-        return new DefaultTableModel(dati, colonne) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // Tabella non editabile
-            }
-        };
-    }
-
-    private String calcolaOraFine(String oraInizio, String durata) {
-        try {
-            int oreInizio = Integer.parseInt(oraInizio.split(":")[0]);
-            int minutiInizio = Integer.parseInt(oraInizio.split(":")[1]);
-
-            int oreFine = oreInizio;
-            int minutiFine = minutiInizio;
-
-            if (durata.contains("2") || durata.contains("bioraria")) {
-                // Lezione bioraria - 2 ore
-                oreFine = oreInizio + 2;
-            } else {
-                // Lezione normale - 1 ora
-                oreFine = oreInizio + 1;
-            }
-
-            return String.format("%02d-%02d", oreInizio, oreFine);
-        } catch (Exception e) {
-            return oraInizio + "+1h";
-        }
-    }
-
-    private String trovaSostitutoPerLezione(Docente docenteAssente, Lezione lezione) {
-        // Simula la logica di ricerca del sostituto
-        if (lezione.getCoDocente().equalsIgnoreCase("S")) {
-            for (String cognomeCodocente : lezione.getCognomi()) {
-                Docente coDocente = gestoreDati.getDocenteByCognome(cognomeCodocente);
-                if (coDocente != null && !isAssente(coDocente)) {
-                    return cognomeCodocente;
-                }
-            }
-        }
-
-        // Cerca tra i docenti disponibili
-        for (Docente docente : gestoreDati.getListaDocenti()) {
-            if (!isAssente(docente) && eDisponibileAllaStessaOra(docente, lezione)) {
-                return docente.getCognome();
-            }
-        }
-
-        return "-";
+        return risultato;
     }
 
     private ArrayList<String> getCognomiAssenti() {

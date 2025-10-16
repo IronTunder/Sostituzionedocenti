@@ -20,13 +20,13 @@ public class InterfacciaAggiornamentoFile extends JFrame {
     private JLabel labelFileSelezionato;
     private JButton bottoneDocenti, bottoneClassi, bottoneDisposizioni, bottoneIndietro, bottoneCambiaFile;
 
-    private Font fontTitolo = new Font("Segoe UI", Font.BOLD, 24);
-    private Font fontSottotitolo = new Font("Segoe UI", Font.PLAIN, 14);
-    private Font fontBottoni = new Font("Segoe UI", Font.BOLD, 14);
-    private Font fontInfo = new Font("Segoe UI", Font.ITALIC, 12);
+    private final Font fontTitolo = new Font("Segoe UI", Font.BOLD, 24);
+    private final Font fontSottotitolo = new Font("Segoe UI", Font.PLAIN, 14);
+    private final Font fontBottoni = new Font("Segoe UI", Font.BOLD, 14);
+    private final Font fontInfo = new Font("Segoe UI", Font.ITALIC, 12);
 
     private final Serializzazione serializzazione;
-    private GestoreDati gestoreDati;
+    private final GestoreDati gestoreDati;
     public InterfacciaAggiornamentoFile(GestoreDati gestoreDati, Serializzazione serializzazione) {
         this.serializzazione = serializzazione;
         this.gestoreDati = gestoreDati;

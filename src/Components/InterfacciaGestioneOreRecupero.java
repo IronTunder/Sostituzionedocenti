@@ -24,19 +24,19 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
     private final Color COLORE_BORDO_FOCUS = new Color(70, 130, 180);
 
     // rimosse le JCheckBox
-    private ArrayList<Docente> docenti;
-    private ArrayList<Docente> docentiFiltrati;
+    private final ArrayList<Docente> docenti;
+    private final ArrayList<Docente> docentiFiltrati;
 
     // lista dei campi ore per riga (uno per docente filtrato)
-    private ArrayList<JTextField> oreFields = new ArrayList<>();
+    private final ArrayList<JTextField> oreFields = new ArrayList<>();
 
     // mappa (opzionale) se vuoi risalire al docente dai bottoni; qui usiamo actionCommand con indice
     private GestoreSostituzioni gestoreSostituzioni;
 
-    private JPanel panelCentro;
-    private JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
-    private JLabel conteggioLabel = new JLabel("Docenti con ore > 0: 0");
-    private JTextField campoRicerca;
+    private final JPanel panelCentro;
+    private final JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
+    private final JLabel conteggioLabel = new JLabel("Docenti con ore > 0: 0");
+    private final JTextField campoRicerca;
 
     public InterfacciaGestioneOreRecupero(GestoreDati gestoreDati) {
         this.setTitle("Interfaccia gestione ore recupero");

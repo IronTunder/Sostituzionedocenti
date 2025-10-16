@@ -12,7 +12,7 @@ public class Docente implements Serializable {
 
     private final String cognome;
     private final ArrayList<Classe> listaClassi;
-    private ArrayList<Lezione> listaLezioni;
+    private final ArrayList<Lezione> listaLezioni;
     private final ArrayList<String> listaMaterie;
     private final ArrayList<String> listaOrari;
 
