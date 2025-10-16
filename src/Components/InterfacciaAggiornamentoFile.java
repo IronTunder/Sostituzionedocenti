@@ -183,6 +183,17 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         }
     }
 
+    private void aggiornaDisposizioni()
+    {
+        JFileChooser fileChooser = new JFileChooser();
+
+    }
+
+    private void aggiornaOrarioClassi()
+    {
+
+    }
+
     private void mostraMessaggio(String testo) {
         JOptionPane.showMessageDialog(this, testo, "Informazione", JOptionPane.INFORMATION_MESSAGE);
     }
