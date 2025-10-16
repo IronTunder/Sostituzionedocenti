@@ -123,6 +123,8 @@ public class MenuPrincipale extends JFrame {
         JPanel pannelloSelezione = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton selezioneDocenti = new JButton("Orario docenti");
         JButton selezioneClassi = new JButton("Orario classi");
+        selezioneClassi.setForeground(Color.BLACK);
+        selezioneDocenti.setForeground(Color.BLACK);
         pannelloSelezione.add(selezioneDocenti);
         pannelloSelezione.add(selezioneClassi);
 
@@ -130,7 +132,7 @@ public class MenuPrincipale extends JFrame {
         pannelloSelezione.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(new Color(200, 200, 210)),
-                        "Selezione"
+                        "Selezione Docenti/Classi"
                 ),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
