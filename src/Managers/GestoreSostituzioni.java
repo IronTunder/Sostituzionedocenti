@@ -11,75 +11,98 @@ import java.util.*;
 
 public class GestoreSostituzioni {
     private final GestoreDati gestoreDati;
-
     private final ArrayList<Docente> docentiAssenti;
-    private final ArrayList<String> docentiSostitutivi;
-
+    private final Map<String, Sostituzione> sostituzioni; // Mappa: chiave univoca -> sostituzione
     private final String giornataOdierna;
-
-    private final String[] orari = new String[]{"8:00","9:00","10:00","11,00","12:00","13:00","14:00","15:00","16:00"};
+    private final String[] orari = new String[]{"08:00","09:00","10:00","11:10","12:05","13:00"};
     private final String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
+
+    // Classe interna per rappresentare una sostituzione
+    private static class Sostituzione {
+        Docente docenteAssente;
+        Docente docenteSostituto;
+        Lezione lezione;
+        String orario;
+
+        Sostituzione(Docente docenteAssente, Docente docenteSostituto, Lezione lezione, String orario) {
+            this.docenteAssente = docenteAssente;
+            this.docenteSostituto = docenteSostituto;
+            this.lezione = lezione;
+            this.orario = orario;
+        }
+    }
 
     public GestoreSostituzioni(GestoreDati gestoreDati, ArrayList<Docente> docentiAssenti) {
         this.docentiAssenti = docentiAssenti;
         this.gestoreDati = gestoreDati;
-        this.docentiSostitutivi = new ArrayList<>();
+        this.sostituzioni = new HashMap<>();
+
         int giornoSettimana = LocalDateTime.now().getDayOfWeek().getValue();
         if(giornoSettimana == 7)
             giornoSettimana = 1;
-
         giornataOdierna = giorni[giornoSettimana - 1];
 
         for (Docente docente : docentiAssenti) {
             processaLezioniDocente(docente);
         }
 
-        System.out.println("Docenti sostitutivi: " + docentiSostitutivi.toString());
+        stampaSostituzioni();
     }
 
     private void processaLezioniDocente(Docente docente) {
         for (Lezione lezione : docente.getListaLezioni()) {
             if (lezione.getGiorno().equalsIgnoreCase(giornataOdierna)) {
                 System.out.println("Processando lezione: " + lezione.getMateria() + " per " + docente.getCognome());
+                Docente sostituto = null;
+
                 if (lezione.getCoDocente().equalsIgnoreCase("S")) {
-                    gestisciLezioneCoDocente(lezione);
-                } else {
+                    sostituto = gestisciLezioneCoDocente(lezione);
+                }
+
+                if (sostituto == null) {
                     boolean isQuinta = isAQuinta(lezione);
-                    gestisciLezioneClasse(lezione, isQuinta);
+                    sostituto = gestisciLezioneClasse(lezione, isQuinta);
+                }
+
+                // Salva la sostituzione
+                if (sostituto != null) {
+                    String chiave = generaChiave(docente, lezione.getOraInizio());
+                    sostituzioni.put(chiave, new Sostituzione(docente, sostituto, lezione, lezione.getOraInizio()));
+                    System.out.println("Sostituzione: " + docente.getCognome() + " -> " + sostituto.getCognome() + " alle " + lezione.getOraInizio() + "Chiave: " + chiave);
                 }
             }
         }
     }
 
     // Compresenza: collega presente
-    private void gestisciLezioneCoDocente(Lezione lezione) {
+    private Docente gestisciLezioneCoDocente(Lezione lezione) {
         for (String cognomeCodocente : lezione.getCognomi()) {
             Docente coDocente = gestoreDati.getDocenteByCognome(cognomeCodocente);
             if (coDocente != null && !isAssente(coDocente)) {
-                docentiSostitutivi.add(cognomeCodocente);
                 System.out.println("Trovato codocente: " + cognomeCodocente);
-                return;
+                System.out.println("===================================================");
+                return coDocente;
             }
         }
         // Se nessun codocente disponibile, cerca sostituto normale
         boolean isQuinta = isAQuinta(lezione);
-        gestisciLezioneClasse(lezione, isQuinta);
+        return gestisciLezioneClasse(lezione, isQuinta);
     }
 
-    private void gestisciLezioneClasse(Lezione lezione, boolean isQuinta) {
+    private Docente gestisciLezioneClasse(Lezione lezione, boolean isQuinta) {
         Classe classe = gestoreDati.getClasseBySezione(lezione.getSezione());
         String materia = lezione.getMateria();
         String oraInizio = lezione.getOraInizio();
-
+        System.out.println("===================================================");
         System.out.println("Cercando sostituto per " + materia + " in " + lezione.getSezione() + " alle " + oraInizio);
 
         // 1. Docente della stessa classe libero (Disposizione)
         if (classe != null) {
             for (Docente docenteClasse : classe.getDocenti()) {
                 if (!isAssente(docenteClasse) && eDisponibileAllaStessaOra(docenteClasse, lezione)) {
-                    docentiSostitutivi.add(docenteClasse.getCognome());
                     System.out.println("Trovato docente della stessa classe: " + docenteClasse.getCognome());
-                    return;
+                    System.out.println("===================================================");
+                    return docenteClasse;
                 }
             }
         }
@@ -91,9 +114,9 @@ public class GestoreSostituzioni {
                     docente.insegnaMateria(materia) &&
                     (!isQuinta || !isDocenteInsegnandoInUnaQuinta(docente))) {
 
-                docentiSostitutivi.add(docente.getCognome());
                 System.out.println("Trovato docente con materia affine: " + docente.getCognome());
-                return;
+                System.out.println("===================================================");
+                return docente;
             }
         }
 
@@ -103,24 +126,23 @@ public class GestoreSostituzioni {
                     eDisponibileAllaStessaOra(docente, lezione) &&
                     (!isQuinta || !isDocenteInsegnandoInUnaQuinta(docente))) {
 
-                docentiSostitutivi.add(docente.getCognome());
                 System.out.println("Trovato docente disponibile: " + docente.getCognome());
-                return;
+                System.out.println("===================================================");
+                return docente;
             }
         }
 
         // 4. Fallback: qualsiasi docente non assente (anche se occupato)
         for (Docente docente : gestoreDati.getListaDocenti()) {
             if (!isAssente(docente) && (!isQuinta || !isDocenteInsegnandoInUnaQuinta(docente))) {
-                docentiSostitutivi.add(docente.getCognome());
                 System.out.println("Trovato docente di ripiego: " + docente.getCognome());
-                return;
+                System.out.println("===================================================");
+                return docente;
             }
         }
 
-        // 5. Ultima risorsa
-        docentiSostitutivi.add("NESSUNA SOSTITUZIONE TROVATA");
         System.out.println("Nessun sostituto trovato per lezione: " + lezione);
+        return null;
     }
 
     // VERIFICA SE IL DOCENTE HA "DISPOSIZIONE" ALLA STESSA ORA
@@ -128,15 +150,14 @@ public class GestoreSostituzioni {
         String oraRiferimento = lezioneRiferimento.getOraInizio();
         String giornoRiferimento = lezioneRiferimento.getGiorno();
 
-        // Cerca se il docente ha una lezione di "Disposizione" alla stessa ora
         for (Lezione lezioneDocente : docente.getListaLezioni()) {
             if (lezioneDocente.getGiorno().equalsIgnoreCase(giornoRiferimento) &&
                     lezioneDocente.getOraInizio().equals(oraRiferimento) &&
                     lezioneDocente.getMateria().equalsIgnoreCase("Disposizione")) {
-                return true; // Il docente ha Disposizione a quest'ora -> è disponibile
+                return true;
             }
         }
-        return false; // Il docente non ha Disposizione a quest'ora -> non è disponibile
+        return false;
     }
 
     private boolean isAssente(Docente docente) {
@@ -147,7 +168,6 @@ public class GestoreSostituzioni {
         return lezione.getSezione().contains("5");
     }
 
-
     private boolean isDocenteInsegnandoInUnaQuinta(Docente docente) {
         for (Classe classe : gestoreDati.getListaClassi()) {
             if (classe.getSezione().contains("5") && classe.haDocente(docente.getCognome())) {
@@ -157,42 +177,116 @@ public class GestoreSostituzioni {
         return false;
     }
 
+    // Metodo per generare una chiave univoca per la mappa
+    private String generaChiave(Docente docente, String orario) {
+        return docente.getCognome() + "_" + orario.replace("h",":");
+    }
+
+    // Metodo per ottenere il sostituto di un docente assente a un orario specifico
+    public String getSostituto(Docente docenteAssente, String orario) {
+        String chiave = generaChiave(docenteAssente, orario);
+        System.out.println("Chiave: " + chiave);
+        Sostituzione sostituzione = sostituzioni.get(chiave);
+        return (sostituzione != null && sostituzione.docenteSostituto != null)
+                ? sostituzione.docenteSostituto.getCognome()
+                : "NESSUNA SOSTITUZIONE TROVATA";
+    }
+
     public JFrame risultato(){
-        JFrame risultato = new  JFrame("Risultato");
-        risultato.setVisible(true);
+        JFrame risultato = new JFrame("Risultato");
+        risultato.setSize(new Dimension(800, 700));
         risultato.setLayout(new GridBagLayout());
+
         GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1.0;
+        c.weighty = 1.0;
+        c.insets = new Insets(2, 2, 2, 2);
 
-        for (int i = 0; i < orari.length; i++){
-            JPanel cella = new  JPanel(new BorderLayout());
-            cella.add(new JLabel(orari[i]),BorderLayout.CENTER);
-            cella.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            c.gridx = 0;
-            c.gridy = i;
-            risultato.add(cella, c);
-        }
+        // Aggiungi cella vuota in alto a sinistra
+        JPanel emptyCell = new JPanel();
+        emptyCell.setPreferredSize(new Dimension(80, 40));
+        emptyCell.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        c.gridx = 0;
+        c.gridy = 0;
+        risultato.add(emptyCell, c);
 
-        for (int i = 0; i < giorni.length; i++){
-            JPanel cella = new  JPanel(new BorderLayout());
-            cella.add(new JLabel(giorni[i]),BorderLayout.CENTER);
+        // Aggiungi i docenti assenti come intestazioni di colonna
+        for (int i = 0; i < docentiAssenti.size(); i++){
+            JPanel cella = new JPanel(new BorderLayout());
+            cella.add(new JLabel(docentiAssenti.get(i).getCognome(), SwingConstants.CENTER), BorderLayout.CENTER);
+            cella.setPreferredSize(new Dimension(120, 40));
             cella.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            c.gridx = i;
+            cella.setBackground(new Color(255, 200, 200));
+            c.gridx = i + 1;
             c.gridy = 0;
             risultato.add(cella, c);
         }
 
+        // RIGHE SUCCESSIVE: Orari e sostituti
+        for (int i = 0; i < orari.length; i++){
+            // Intestazione della riga (orario)
+            JPanel oraCell = new JPanel(new BorderLayout());
+            oraCell.setPreferredSize(new Dimension(80, 40));
+            oraCell.add(new JLabel(orari[i], SwingConstants.CENTER), BorderLayout.CENTER);
+            oraCell.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            oraCell.setBackground(new Color(200, 220, 255));
+            c.gridx = 0;
+            c.gridy = i + 1;
+            risultato.add(oraCell, c);
+
+            // Celle con sostituti per ogni docente assente
+            for (int j = 0; j < docentiAssenti.size(); j++){
+                JPanel cellaSostituto = new JPanel(new BorderLayout());
+                cellaSostituto.setPreferredSize(new Dimension(120, 40));
+                cellaSostituto.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+
+                // Usa il nuovo metodo per trovare il sostituto
+                String sostituto = getSostituto(docentiAssenti.get(j), orari[i]);
+
+                JLabel labelSostituto = new JLabel(sostituto, SwingConstants.CENTER);
+                labelSostituto.setFont(new Font("Arial", Font.PLAIN, 10));
+                cellaSostituto.add(labelSostituto, BorderLayout.CENTER);
+
+                // Colore diverso in base al tipo di sostituto
+                if (sostituto.equals("NESSUNA SOSTITUZIONE TROVATA")) {
+                    cellaSostituto.setBackground(new Color(255, 150, 150));
+                } else if (!sostituto.isEmpty()) {
+                    cellaSostituto.setBackground(new Color(200, 255, 200));
+                } else {
+                    cellaSostituto.setBackground(Color.WHITE);
+                }
+
+                c.gridx = j + 1;
+                c.gridy = i + 1;
+                risultato.add(cellaSostituto, c);
+            }
+        }
+
+        risultato.pack();
+        risultato.setVisible(true);
         return risultato;
     }
 
-    private ArrayList<String> getCognomiAssenti() {
-        ArrayList<String> cognomi = new ArrayList<>();
-        for (Docente docente : docentiAssenti) {
-            cognomi.add(docente.getCognome());
+
+    private boolean docenteHaLezione(Docente docente, String orario) {
+        for (Lezione lezione : docente.getListaLezioni()) {
+            if (lezione.getGiorno().equalsIgnoreCase(giornataOdierna) &&
+                    lezione.getOraInizio().equals(orario)) {
+                return true;
+            }
         }
-        return cognomi;
+        return false;
     }
 
-    public ArrayList<String> getDocentiSostitutivi() {
-        return new ArrayList<>(docentiSostitutivi);
+    // Metodo per ottenere tutte le sostituzioni (utile per debug)
+    public void stampaSostituzioni() {
+        System.out.println("=== RIEPILOGO SOSTITUZIONI ===");
+        for (Sostituzione sost : sostituzioni.values()) {
+            System.out.println(sost.docenteAssente.getCognome() + " -> " +
+                    (sost.docenteSostituto != null ? sost.docenteSostituto.getCognome() : "NESSUNO") +
+                    " alle " + sost.orario);
+        }
+        System.out.println("=== RIEPILOGO SOSTITUZIONI ===");
     }
 }
