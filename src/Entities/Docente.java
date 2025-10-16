@@ -14,21 +14,18 @@ public class Docente implements Serializable {
     private final ArrayList<Classe> listaClassi;
     private final ArrayList<Lezione> listaLezioni;
     private final ArrayList<String> listaMaterie;
-    private final ArrayList<String> listaOrari;
 
     public Docente(String cognome) {
         this.cognome = Objects.requireNonNull(cognome, "Cognome non può essere null");
         this.listaLezioni = new ArrayList<>();
         this.listaClassi = new ArrayList<>();
         this.listaMaterie = new ArrayList<>();
-        this.listaOrari = new ArrayList<>();
     }
 
     
     public String getCognome() { return cognome; }
     public ArrayList<Classe> getListaClassi() { return new ArrayList<>(listaClassi); }
     public ArrayList<String> getListaMaterie() { return new ArrayList<>(listaMaterie); }
-    public ArrayList<String> getListaOrari() { return new ArrayList<>(listaOrari); }
 
     
     public void aggiungiClasse(Classe classe) {
@@ -49,12 +46,14 @@ public class Docente implements Serializable {
         }
     }
 
-    public void aggiungiOrario(String orario) {
-        if (orario != null && !listaOrari.contains(orario)) {
-            listaOrari.add(orario);
+    public boolean eInServizio(String orario){
+        for (Lezione lezione : listaLezioni) {
+            if (lezione.getOraInizio().equals(orario)) {
+                return true;
+            }
         }
+        return false;
     }
-
     
     public void rimuoviClasse(Classe classe) {
         listaClassi.remove(classe);
@@ -62,10 +61,6 @@ public class Docente implements Serializable {
 
     public void rimuoviMateria(String materia) {
         listaMaterie.remove(materia);
-    }
-
-    public void rimuoviOrario(String orario) {
-        listaOrari.remove(orario);
     }
 
     

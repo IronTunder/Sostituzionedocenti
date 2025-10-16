@@ -106,8 +106,10 @@ public class TabellaOraria extends JPanel {
         c.weighty = 1.0;
 
         String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
-        int maxOrePerGiorno = calcolaMaxOrePerGiorno(lezioni, giorni);
+        String[] orari = {"08:00","09:00","10:00","11:10","12:05","13:00"};
+        int maxOrePerGiorno = orari.length;
 
+        // Intestazioni giorni
         for (int i = 0; i < giorni.length; i++) {
             JLabel labelGiorno = new JLabel(giorni[i], SwingConstants.CENTER);
             labelGiorno.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -129,23 +131,46 @@ public class TabellaOraria extends JPanel {
             ArrayList<Lezione> lezioniGiorno = getLezioniPerGiorno(lezioni, giorno);
 
             int riga = 1;
-            for (Lezione lezione : lezioniGiorno) {
-                JPanel panelLezione = creaPanelLezione(lezione,true);
+            int lezioneIndex = 0;
+
+            // Ordina le lezioni per orario di inizio
+            lezioniGiorno.sort((l1, l2) -> l1.getOraInizio().compareTo(l2.getOraInizio()));
+
+            for (int oraIndex = 0; oraIndex < orari.length; oraIndex++) {
+                String orarioCorrente = orari[oraIndex];
+                JPanel panelDaAggiungere;
+
+                // Controlla se c'è una lezione a questo orario
+                if (lezioneIndex < lezioniGiorno.size() &&
+                        lezioniGiorno.get(lezioneIndex).getOraInizio().replace("h", ":").equals(orarioCorrente)) {
+
+                    // C'è una lezione
+                    Lezione lezione = lezioniGiorno.get(lezioneIndex);
+                    panelDaAggiungere = creaPanelLezione(lezione, true);
+                    c.gridheight = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+                    lezioneIndex++; // Passa alla prossima lezione
+
+                    // Salta le ore successive se la lezione dura più di un'ora
+                    if (c.gridheight > 1) {
+                        oraIndex += (c.gridheight - 1);
+                    }
+                } else {
+                    // Non c'è lezione - ora libera
+                    panelDaAggiungere = creaPanelLibero();
+                    c.gridheight = 1;
+                }
 
                 c.gridx = giornoIndex;
                 c.gridy = riga;
-                c.gridheight = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
                 c.insets = new Insets(1, 1, 1, 1);
-
-                pannelloOrario.add(panelLezione, c);
+                pannelloOrario.add(panelDaAggiungere, c);
                 riga += c.gridheight;
             }
 
-            while (riga <= maxOrePerGiorno) {
-                JPanel panelVuoto = new JPanel(new BorderLayout());
-                panelVuoto.setBackground(Color.WHITE);
-                panelVuoto.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 
+            // Riempimento celle vuote rimanenti (non dovrebbe essere necessario con orari fissi)
+            while (riga <= maxOrePerGiorno + 1) {
+                JPanel panelVuoto = creaPanelLibero();
                 c.gridx = giornoIndex;
                 c.gridy = riga;
                 c.gridheight = 1;
@@ -164,6 +189,18 @@ public class TabellaOraria extends JPanel {
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getViewport().setBackground(Color.WHITE);
         this.add(scrollPane, BorderLayout.CENTER);
+    }
+
+    // Aggiungi questo metodo per creare il pannello "Libero"
+    private JPanel creaPanelLibero() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(245, 245, 245));
+        JLabel label = new JLabel("Libero", SwingConstants.CENTER);
+        label.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        label.setForeground(Color.GRAY);
+        panel.add(label, BorderLayout.CENTER);
+        panel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        return panel;
     }
 
     private JPanel creaPanelLezione(Lezione lezione,boolean isDocente) {
@@ -199,7 +236,7 @@ public class TabellaOraria extends JPanel {
         panelLezione.add(labelCognomi, BorderLayout.NORTH);
         panelLezione.add(labelMateria, BorderLayout.CENTER);
 
-        if(isDocente){
+        if(isDocente && !lezione.getMateria().equalsIgnoreCase("Disposizione")){
             JLabel labelClasse = new JLabel(lezione.getSezione(), SwingConstants.CENTER);
             labelClasse.setFont(fontNormale);
             labelClasse.setOpaque(false);

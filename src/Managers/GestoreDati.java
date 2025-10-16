@@ -61,10 +61,6 @@ public class GestoreDati implements Serializable {
                 }
             }
         }
-        for (Docente docente : listaDocenti) {
-            System.out.println(docente.getCognome());
-            System.out.println(docente.getListaLezioni().toString());
-        }
     }
 
     public void creaOrarioClasse(String sezione) {

@@ -26,7 +26,7 @@ public class Lezione implements Serializable {
         this.sezione = classe;
         this.coDocente = coDocente;
         this.giorno = giorno;
-        this.oraInizio = oraInizio;
+        this.oraInizio = oraInizio.replace("h", ":");
     }
     
     public int getNumero() { return numero; }
