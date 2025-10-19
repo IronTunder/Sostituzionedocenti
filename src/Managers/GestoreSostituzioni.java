@@ -19,14 +19,13 @@ public class GestoreSostituzioni {
 
     private final String giornataOdierna;
     private final String[] orari = {"08:00","09:00","10:00","11:10","12:05","13:00"};
-    private final String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
 
     // Classe interna per rappresentare una sostituzione
     private static class Sostituzione {
-        Docente docenteAssente;
-        Docente docenteSostituto;
-        Lezione lezione;
-        String orario;
+        final Docente docenteAssente;
+        final Docente docenteSostituto;
+        final Lezione lezione;
+        final String orario;
 
         Sostituzione(Docente docenteAssente, Docente docenteSostituto, Lezione lezione, String orario) {
             this.docenteAssente = docenteAssente;
@@ -46,6 +45,7 @@ public class GestoreSostituzioni {
         int giornoSettimana = LocalDateTime.now().getDayOfWeek().getValue();
         if(giornoSettimana == 7)
             giornoSettimana = 1;
+        String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
         giornataOdierna = giorni[giornoSettimana - 1];
 
         for (Docente docente : docentiAssenti) {
@@ -158,8 +158,8 @@ public class GestoreSostituzioni {
     private Docente trovaCoDocente(Lezione lezione, String orario) {
         for (String cognomeCodocente : lezione.getCognomi()) {
             Docente coDocente = gestoreDati.getDocenteByCognome(cognomeCodocente);
-            if (coDocente != null && !isAssente(coDocente) &&
-                    !eGiaUtilizzatoAllaStessaOra(coDocente, orario)) {
+            if (coDocente != null && isAssente(coDocente) &&
+                    eGiaUtilizzatoAllaStessaOra(coDocente, orario)) {
                 serializzazione.log("Trovato codocente: " + cognomeCodocente);
                 return coDocente;
             }
@@ -172,8 +172,8 @@ public class GestoreSostituzioni {
         Classe classe = gestoreDati.getClasseBySezione(lezione.getSezione());
         if (classe != null) {
             for (Docente docenteClasse : classe.getDocenti()) {
-                if (!isAssente(docenteClasse) &&
-                        !eGiaUtilizzatoAllaStessaOra(docenteClasse, orario) &&
+                if (isAssente(docenteClasse) &&
+                        eGiaUtilizzatoAllaStessaOra(docenteClasse, orario) &&
                         docenteHaDisposizione(docenteClasse, orario)) {
                     serializzazione.log("Trovato docente della stessa classe: " + docenteClasse.getCognome());
                     return docenteClasse;
@@ -188,11 +188,11 @@ public class GestoreSostituzioni {
         String materia = lezione.getMateria();
 
         for (Docente docente : gestoreDati.getListaDocenti()) {
-            if (!isAssente(docente) &&
-                    !eGiaUtilizzatoAllaStessaOra(docente, orario) &&
+            if (isAssente(docente) &&
+                    eGiaUtilizzatoAllaStessaOra(docente, orario) &&
                     docenteHaDisposizione(docente, orario) &&
                     docente.insegnaMateria(materia) &&
-                    (!isQuinta || !isDocenteInsegnandoInUnaQuinta(docente))) {
+                    (!isQuinta || isDocenteInsegnandoInUnaQuinta(docente))) {
 
                 serializzazione.log("Trovato docente con materia affine: " + docente.getCognome());
                 return docente;
@@ -204,10 +204,10 @@ public class GestoreSostituzioni {
     // 4. METODO PER TROVARE QUALSIASI DOCENTE DISPONIBILE
     private Docente trovaDocenteDisponibile(Lezione lezione, String orario, boolean isQuinta) {
         for (Docente docente : gestoreDati.getListaDocenti()) {
-            if (!isAssente(docente) &&
-                    !eGiaUtilizzatoAllaStessaOra(docente, orario) &&
+            if (isAssente(docente) &&
+                    eGiaUtilizzatoAllaStessaOra(docente, orario) &&
                     docenteHaDisposizione(docente, orario) &&
-                    (!isQuinta || !isDocenteInsegnandoInUnaQuinta(docente))) {
+                    (!isQuinta || isDocenteInsegnandoInUnaQuinta(docente))) {
 
                 serializzazione.log("Trovato docente disponibile: " + docente.getCognome());
                 return docente;
@@ -226,8 +226,8 @@ public class GestoreSostituzioni {
     // 6. METODO PER TROVARE QUALSIASI DOCENTE LIBERO
     private Docente trovaDocenteLibero(Lezione lezione, String orario) {
         for (Docente docente : gestoreDati.getListaDocenti()) {
-            if (!isAssente(docente) &&
-                    !eGiaUtilizzatoAllaStessaOra(docente, orario) &&
+            if (isAssente(docente) &&
+                    eGiaUtilizzatoAllaStessaOra(docente, orario) &&
                     !docenteHaLezione(docente, orario)) {
 
                 serializzazione.log("Trovato docente libero: " + docente.getCognome());
@@ -250,12 +250,12 @@ public class GestoreSostituzioni {
     // VERIFICA SE IL DOCENTE È GIÀ UTILIZZATO ALLA STESSA ORA
     private boolean eGiaUtilizzatoAllaStessaOra(Docente docente, String orario) {
         String chiaveUtilizzo = docente.getCognome() + "_" + orario;
-        return docentiUtilizzatiPerOra.contains(chiaveUtilizzo);
+        return !docentiUtilizzatiPerOra.contains(chiaveUtilizzo);
     }
 
     // I METODI RESTANTI RIMANGONO INVARIATI...
     private boolean isAssente(Docente docente) {
-        return docentiAssenti.contains(docente);
+        return !docentiAssenti.contains(docente);
     }
 
     private boolean isAQuinta(Lezione lezione) {
@@ -265,10 +265,10 @@ public class GestoreSostituzioni {
     private boolean isDocenteInsegnandoInUnaQuinta(Docente docente) {
         for (Classe classe : gestoreDati.getListaClassi()) {
             if (classe.getSezione().contains("5") && classe.haDocente(docente.getCognome())) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     private boolean docenteHaLezione(Docente docente, String orario) {

@@ -6,11 +6,11 @@ import Entities.Lezione;
 
 import java.io.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
+@SuppressWarnings("unchecked")
 public class Serializzazione implements AutoCloseable {
     private static final String DATA_PATH = "data.dat";
     private static final String LOG_DIR = "logs/";

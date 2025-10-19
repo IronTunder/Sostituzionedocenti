@@ -12,21 +12,19 @@ public class InterfacciaAggiornamentoFile extends JFrame {
     private final Color coloreBluScuro = new Color(60, 110, 160);
     private final Color coloreRosso = new Color(200, 70, 80);
 
-    private JPanel pannelloPrincipale;
     private JPanel pannelloTitolo;
     private JPanel pannelloBottoni;
     private JPanel pannelloInfoFile;
-    private JLabel titolo, sottotitolo;
     private JLabel labelFileSelezionato;
-    private JButton bottoneDocenti, bottoneClassi, bottoneDisposizioni, bottoneIndietro, bottoneCambiaFile;
+    private JButton bottoneCambiaFile;
 
-    private Font fontTitolo = new Font("Segoe UI", Font.BOLD, 24);
-    private Font fontSottotitolo = new Font("Segoe UI", Font.PLAIN, 14);
-    private Font fontBottoni = new Font("Segoe UI", Font.BOLD, 14);
-    private Font fontInfo = new Font("Segoe UI", Font.ITALIC, 12);
+    private final Font fontTitolo = new Font("Segoe UI", Font.BOLD, 24);
+    private final Font fontSottotitolo = new Font("Segoe UI", Font.PLAIN, 14);
+    private final Font fontBottoni = new Font("Segoe UI", Font.BOLD, 14);
+    private final Font fontInfo = new Font("Segoe UI", Font.ITALIC, 12);
 
     private final Serializzazione serializzazione;
-    private GestoreDati gestoreDati;
+    private final GestoreDati gestoreDati;
     public InterfacciaAggiornamentoFile(GestoreDati gestoreDati, Serializzazione serializzazione) {
         this.serializzazione = serializzazione;
         this.gestoreDati = gestoreDati;
@@ -41,7 +39,7 @@ public class InterfacciaAggiornamentoFile extends JFrame {
     }
 
     private void pannelloPrincipale() {
-        pannelloPrincipale = new JPanel(new BorderLayout());
+        JPanel pannelloPrincipale = new JPanel(new BorderLayout());
         pannelloPrincipale.setBackground(coloreSfondo);
         pannelloPrincipale.setBorder(new EmptyBorder(20, 40, 20, 40));
 
@@ -61,11 +59,11 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         pannelloTitolo.setBackground(coloreSfondo);
         pannelloTitolo.setBorder(new EmptyBorder(10, 10, 20, 10));
 
-        titolo = new JLabel("AGGIORNAMENTO FILE", SwingConstants.CENTER);
+        JLabel titolo = new JLabel("AGGIORNAMENTO FILE", SwingConstants.CENTER);
         titolo.setFont(fontTitolo);
         titolo.setForeground(coloreBluScuro);
 
-        sottotitolo = new JLabel("Gestisci e aggiorna i file CSV dell'orario scolastico", SwingConstants.CENTER);
+        JLabel sottotitolo = new JLabel("Gestisci e aggiorna i file CSV dell'orario scolastico", SwingConstants.CENTER);
         sottotitolo.setFont(fontSottotitolo);
         sottotitolo.setForeground(Color.GRAY);
 
@@ -112,10 +110,10 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         pannelloBottoni.setBackground(coloreSfondo);
         pannelloBottoni.setBorder(new EmptyBorder(20, 200, 20, 200));
 
-        bottoneDocenti = creaPulsante("Aggiorna Orario Docenti", coloreBlu);
-        bottoneDisposizioni = creaPulsante("Aggiorna Disposizioni", new Color(100, 149, 237));
-        bottoneClassi = creaPulsante("Aggiorna Orario Classi", new Color(72, 187, 120));
-        bottoneIndietro = creaPulsante("Indietro", coloreRosso);
+        JButton bottoneDocenti = creaPulsante("Aggiorna Orario Docenti", coloreBlu);
+        JButton bottoneDisposizioni = creaPulsante("Aggiorna Disposizioni", new Color(100, 149, 237));
+        JButton bottoneClassi = creaPulsante("Aggiorna Orario Classi", new Color(72, 187, 120));
+        JButton bottoneIndietro = creaPulsante("Indietro", coloreRosso);
 
         pannelloBottoni.add(bottoneDocenti);
         pannelloBottoni.add(bottoneDisposizioni);

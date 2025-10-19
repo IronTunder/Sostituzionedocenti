@@ -8,7 +8,6 @@ import Managers.Serializzazione;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class MenuPrincipale extends JFrame {
@@ -16,7 +15,6 @@ public class MenuPrincipale extends JFrame {
     private final JComboBox<String> comboClassi = new JComboBox<>();
     private final JComboBox<String> comboDocenti = new JComboBox<>();
     private JPanel pannelloOrario;
-    private JPanel pannelloSinistra;
     private final GestoreDati gestoreDati;
     private final Serializzazione serializzazione;
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
@@ -60,7 +58,7 @@ public class MenuPrincipale extends JFrame {
         this.add(pannelloCentro, BorderLayout.CENTER);
 
 
-        pannelloSinistra = creaPannelloSinistro(classi, docente);
+        JPanel pannelloSinistra = creaPannelloSinistro(classi, docente);
         pannelloCentro.add(pannelloSinistra, BorderLayout.CENTER);
 
 
@@ -249,9 +247,9 @@ public class MenuPrincipale extends JFrame {
         JButton bGestioneOre = new JButton("Gestione Ore da Recuperare");
 
 
-        personalizzaBottone(bSostituzione, new Color(100, 149, 237), Color.BLACK);
-        personalizzaBottone(bAggiornazione, new Color(72, 187, 120), Color.BLACK);
-        personalizzaBottone(bGestioneOre, new Color(255, 159, 67), Color.BLACK);
+        personalizzaBottone(bSostituzione, new Color(100, 149, 237));
+        personalizzaBottone(bAggiornazione, new Color(72, 187, 120));
+        personalizzaBottone(bGestioneOre, new Color(255, 159, 67));
 
         bSostituzione.addActionListener(e -> {
             new InterfacciaAssenti(gestoreDati,serializzazione);
@@ -287,10 +285,10 @@ public class MenuPrincipale extends JFrame {
         pannelloOrario.repaint();
     }
 
-    private void personalizzaBottone(JButton bottone, Color coloreSfondo, Color coloreTesto) {
+    private void personalizzaBottone(JButton bottone, Color coloreSfondo) {
         bottone.setFocusPainted(false);
         bottone.setBackground(coloreSfondo);
-        bottone.setForeground(coloreTesto);
+        bottone.setForeground(Color.BLACK);
         bottone.setFont(new Font("Segoe UI", Font.BOLD, 14));
         bottone.setBorder(new LineBorder(coloreSfondo.darker(), 1, true));
         bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));

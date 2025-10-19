@@ -19,7 +19,6 @@ import java.util.Map;
 public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final Color COLORE_SFONDO = new Color(255, 255, 255);
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
-    private final Color COLORE_SECONDARIO = new Color(46, 139, 87);
     private final Color COLORE_TESTO = new Color(0, 0, 0);
     private final Color COLORE_BORDO = new Color(200, 200, 200);
     private final Color COLORE_BORDO_FOCUS = new Color(70, 130, 180);
@@ -32,7 +31,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final Map<Docente, Boolean> statoCheckbox = new HashMap<>(); // AGGIUNTA: memorizza lo stato delle checkbox
 
     private GestoreSostituzioni gestoreSostituzioni;
-    private Serializzazione serializzazione;
 
     private final JPanel panelCentro;
     private final JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
@@ -46,7 +44,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         this.setLayout(new BorderLayout(0, 20));
         this.getContentPane().setBackground(COLORE_SFONDO);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        this.serializzazione = serializzazione;
         this.docenti = new ArrayList<>(gestoreDati.getListaDocenti());
         this.docentiFiltrati = new ArrayList<>(docenti);
 
@@ -193,6 +190,7 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         pannelloBottoni.setBorder(new EmptyBorder(10, 0, 20, 0));
 
         JButton bottoneIndietro = creaPulsante("INDIETRO", COLORE_PRIMARIO);
+        Color COLORE_SECONDARIO = new Color(46, 139, 87);
         JButton bottoneConferma = creaPulsante("CONFERMA", COLORE_SECONDARIO);
 
         bottoneIndietro.addActionListener(e -> this.dispose());

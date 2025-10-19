@@ -126,14 +126,14 @@ public class InterfacciaSelezioneFile extends JFrame {
     private JButton creaPulsante(String testo, Color colore) {
         JButton pulsante = new JButton(testo);
         pulsante.setPreferredSize(new Dimension(160, 40));
-        personalizzaBottone(pulsante, colore, Color.BLACK);
+        personalizzaBottone(pulsante, colore);
         return pulsante;
     }
 
-    private void personalizzaBottone(JButton bottone, Color coloreSfondo, Color coloreTesto) {
+    private void personalizzaBottone(JButton bottone, Color coloreSfondo) {
         bottone.setFocusPainted(false);
         bottone.setBackground(coloreSfondo);
-        bottone.setForeground(coloreTesto);
+        bottone.setForeground(Color.BLACK);
         bottone.setFont(new Font("Segoe UI", Font.BOLD, 13));
         bottone.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(coloreSfondo.darker(), 1),

@@ -2,7 +2,6 @@ package Components;
 
 import Entities.Docente;
 import Managers.GestoreDati;
-import Managers.GestoreSostituzioni;
 import Managers.Serializzazione;
 
 import javax.swing.*;
@@ -19,7 +18,6 @@ import java.util.Map;
 public class InterfacciaGestioneOreRecupero extends JFrame implements ActionListener {
     private final Color COLORE_SFONDO = new Color(255, 255, 255);
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
-    private final Color COLORE_SECONDARIO = new Color(46, 139, 87);
     private final Color COLORE_TESTO = new Color(0, 0, 0);
     private final Color COLORE_BORDO = new Color(200, 200, 200);
     private final Color COLORE_BORDO_FOCUS = new Color(70, 130, 180);
@@ -32,8 +30,6 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
 
     // Mappa per memorizzare le ore assegnate a ciascun docente (per ripristino dopo filtro)
     private final Map<Docente, Integer> oreAssegnate = new HashMap<>();
-
-    private Serializzazione serializzazione;
 
     private final JPanel panelCentro;
     private final JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
@@ -48,7 +44,6 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         this.getContentPane().setBackground(COLORE_SFONDO);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        this.serializzazione = serializzazione;
         this.docenti = new ArrayList<>(gestoreDati.getListaDocenti());
         this.docentiFiltrati = new ArrayList<>(docenti);
 
@@ -195,6 +190,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         pannelloBottoni.setBorder(new EmptyBorder(10, 0, 20, 0));
 
         JButton bottoneIndietro = creaPulsante("INDIETRO", COLORE_PRIMARIO);
+        Color COLORE_SECONDARIO = new Color(46, 139, 87);
         JButton bottoneConferma = creaPulsante("CONFERMA", COLORE_SECONDARIO);
 
         bottoneIndietro.addActionListener(e -> this.dispose());
@@ -491,7 +487,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
                 }
             }
             aggiornaPannelloConteggio();
-        } else if ("".equals(cmd)) {
+        } else if (cmd.isEmpty()) {
             // possibile ActionEvent dal campo ricerca
             aggiornaPannelloConteggio();
         }

@@ -14,7 +14,6 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
     private final JComboBox<String> comboClassi = new JComboBox<>();
     private final JComboBox<String> comboDocenti = new JComboBox<>();
     private JPanel pannelloOrario;
-    private JPanel pannelloSinistra;
     private final GestoreDati gestoreDati;
     private final Serializzazione serializzazione;
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
@@ -59,7 +58,7 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         this.add(pannelloCentro, BorderLayout.CENTER);
 
 
-        pannelloSinistra = creaPannelloSinistro(classi, docente);
+        JPanel pannelloSinistra = creaPannelloSinistro(classi, docente);
         pannelloCentro.add(pannelloSinistra, BorderLayout.CENTER);
 
 
@@ -248,7 +247,7 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
 
 
-        personalizzaBottone(bIndietro, new Color(255, 159, 67), Color.BLACK);
+        personalizzaBottone(bIndietro, new Color(255, 159, 67));
 
 
 
@@ -277,10 +276,10 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloOrario.repaint();
     }
 
-    private void personalizzaBottone(JButton bottone, Color coloreSfondo, Color coloreTesto) {
+    private void personalizzaBottone(JButton bottone, Color coloreSfondo) {
         bottone.setFocusPainted(false);
         bottone.setBackground(coloreSfondo);
-        bottone.setForeground(coloreTesto);
+        bottone.setForeground(Color.BLACK);
         bottone.setFont(new Font("Segoe UI", Font.BOLD, 14));
         bottone.setBorder(new LineBorder(coloreSfondo.darker(), 1, true));
         bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));
