@@ -185,7 +185,7 @@ public class InterfacciaSelezioneFile extends JFrame {
     private void elaboraFileSelezionato(File file) {
         try {
             LettoreCSV lettoreCSV = new LettoreCSV();
-            lettoreCSV.leggiFile(file.getAbsolutePath(), gestoreDati);
+            lettoreCSV.leggiFile(file.getAbsolutePath(), gestoreDati,serializzazione);
             serializzazione.salvaDati();
             avviaInterfacciaPrincipale();
         } catch (IOException | CsvException ex) {

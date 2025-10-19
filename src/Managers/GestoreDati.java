@@ -54,7 +54,6 @@ public class GestoreDati implements Serializable {
     public void organizzaDocenti() {
         listaDocenti.sort(Comparator.comparing(Docente::getCognome));
         for (Lezione lezione : listaLezioni) {
-            System.out.println(Arrays.toString(lezione.getCognomi()));
             for (Docente docente : listaDocenti) {
                 if(lezione.insegnaNellaLezione(docente.getCognome())) {
                     docente.aggiungiLezione(lezione);

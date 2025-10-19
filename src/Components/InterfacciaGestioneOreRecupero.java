@@ -3,6 +3,7 @@ package Components;
 import Entities.Docente;
 import Managers.GestoreDati;
 import Managers.GestoreSostituzioni;
+import Managers.Serializzazione;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -32,14 +33,14 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
     // Mappa per memorizzare le ore assegnate a ciascun docente (per ripristino dopo filtro)
     private final Map<Docente, Integer> oreAssegnate = new HashMap<>();
 
-    private GestoreSostituzioni gestoreSostituzioni;
+    private Serializzazione serializzazione;
 
     private final JPanel panelCentro;
     private final JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
     private final JLabel conteggioLabel = new JLabel("Docenti con ore > 0: 0");
     private final JTextField campoRicerca;
 
-    public InterfacciaGestioneOreRecupero(GestoreDati gestoreDati) {
+    public InterfacciaGestioneOreRecupero(GestoreDati gestoreDati, Serializzazione serializzazione) {
         this.setTitle("Interfaccia gestione ore recupero");
         this.setSize(700, 500);
         this.setLocationRelativeTo(null);
@@ -47,6 +48,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         this.getContentPane().setBackground(COLORE_SFONDO);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
+        this.serializzazione = serializzazione;
         this.docenti = new ArrayList<>(gestoreDati.getListaDocenti());
         this.docentiFiltrati = new ArrayList<>(docenti);
 
@@ -213,9 +215,9 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
                 );
                 if (scelta == JOptionPane.YES_OPTION) {
                     // Salva le ore finali prima di procedere
-                    salvaOreAssegnate();
-                    gestoreSostituzioni = new GestoreSostituzioni(gestoreDati, getDocentiAssenti());
-                    dispose();
+                    //salvaOreAssegnate();
+                    //gestoreSostituzioni = new GestoreSostituzioni(gestoreDati, getDocentiAssenti());
+                    //dispose();
                     // TODO: Avvia calcolo sostituzioni usando anche le ore se necessario
                 }
             } else {

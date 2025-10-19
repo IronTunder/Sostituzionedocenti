@@ -11,9 +11,12 @@ import java.util.*;
 
 public class GestoreSostituzioni {
     private final GestoreDati gestoreDati;
+    private final Serializzazione serializzazione;
+
     private final ArrayList<Docente> docentiAssenti;
     private final Map<String, Sostituzione> sostituzioni;
     private final Set<String> docentiUtilizzatiPerOra; // Modifica: tiene traccia dei docenti già usati per ogni orario
+
     private final String giornataOdierna;
     private final String[] orari = {"08:00","09:00","10:00","11:10","12:05","13:00"};
     private final String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
@@ -33,11 +36,12 @@ public class GestoreSostituzioni {
         }
     }
 
-    public GestoreSostituzioni(GestoreDati gestoreDati, ArrayList<Docente> docentiAssenti) {
+    public GestoreSostituzioni(GestoreDati gestoreDati, Serializzazione serializzazione, ArrayList<Docente> docentiAssenti) {
         this.docentiAssenti = docentiAssenti;
         this.gestoreDati = gestoreDati;
         this.sostituzioni = new HashMap<>();
         this.docentiUtilizzatiPerOra = new HashSet<>(); // Inizializza il set
+        this.serializzazione = serializzazione;
 
         int giornoSettimana = LocalDateTime.now().getDayOfWeek().getValue();
         if(giornoSettimana == 7)
@@ -45,60 +49,64 @@ public class GestoreSostituzioni {
         giornataOdierna = giorni[giornoSettimana - 1];
 
         for (Docente docente : docentiAssenti) {
+            serializzazione.log("=============================================");
+            serializzazione.log("**** Processando sostituzioni per docente assente: " + docente.getCognome() + " ****");
             processaLezioniDocente(docente);
         }
 
-        stampaSostituzioni();
+        serializzazione.log(stampaSostituzioni());
     }
 
     private void processaLezioniDocente(Docente docente) {
-        // Ordina le lezioni per priorità (prima le quinte, poi le altre)
-        ArrayList<Lezione> lezioniOrdinate = new ArrayList<>(docente.getListaLezioni());
-        lezioniOrdinate.sort((l1, l2) -> {
-            boolean l1Quinta = isAQuinta(l1);
-            boolean l2Quinta = isAQuinta(l2);
-            if (l1Quinta && !l2Quinta) return -1;
-            if (!l1Quinta && l2Quinta) return 1;
-            return 0;
-        });
+        if(docente.haLezioneInGiorno(giornataOdierna)){
+            ArrayList<Lezione> lezioniOrdinate = new ArrayList<>(docente.getListaLezioni());
+            lezioniOrdinate.sort((l1, l2) -> {
+                boolean l1Quinta = isAQuinta(l1);
+                boolean l2Quinta = isAQuinta(l2);
+                if (l1Quinta && !l2Quinta) return -1;
+                if (!l1Quinta && l2Quinta) return 1;
+                return 0;
+            });
+            for (Lezione lezione : lezioniOrdinate) {
+                if (lezione.getGiorno().equalsIgnoreCase(giornataOdierna) && !lezione.getMateria().equalsIgnoreCase("Disposizione")) {
+                    serializzazione.log("Processando lezione: " + lezione.getMateria() + " per " + docente.getCognome() +
+                            " (Durata: " + lezione.getDurata() + ")");
 
-        for (Lezione lezione : lezioniOrdinate) {
-            if (lezione.getGiorno().equalsIgnoreCase(giornataOdierna) && !lezione.getMateria().equalsIgnoreCase("Disposizione")) {
-                System.out.println("Processando lezione: " + lezione.getMateria() + " per " + docente.getCognome() +
-                        " (Durata: " + lezione.getDurata() + ")");
+                    int durata = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+                    String orarioInizio = lezione.getOraInizio();
 
-                // Per lezioni con durata > 1 ora, processa ogni ora separatamente
-                int durata = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
-                String orarioInizio = lezione.getOraInizio();
-
-                // Trova l'indice dell'orario di inizio nell'array degli orari
-                int indiceOrarioInizio = -1;
-                for (int i = 0; i < orari.length; i++) {
-                    if (orari[i].equals(orarioInizio)) {
-                        indiceOrarioInizio = i;
-                        break;
+                    int indiceOrarioInizio = -1;
+                    for (int i = 0; i < orari.length; i++) {
+                        if (orari[i].equals(orarioInizio)) {
+                            indiceOrarioInizio = i;
+                            break;
+                        }
                     }
-                }
 
-                if (indiceOrarioInizio == -1) {
-                    System.out.println("ERRORE: Orario di inizio non trovato: " + orarioInizio);
-                    continue;
-                }
+                    if (indiceOrarioInizio == -1) {
+                        serializzazione.error("Orario di inizio non trovato: " + orarioInizio);
+                        continue;
+                    }
 
-                // Processa ogni ora della lezione separatamente
-                for (int i = 0; i < durata; i++) {
-                    if (indiceOrarioInizio + i < orari.length) {
-                        String orarioCorrente = orari[indiceOrarioInizio + i];
-                        processaSingolaOra(docente, lezione, orarioCorrente, i);
+                    for (int i = 0; i < durata; i++) {
+                        if (indiceOrarioInizio + i < orari.length) {
+                            String orarioCorrente = orari[indiceOrarioInizio + i];
+                            processaSingolaOra(docente, lezione, orarioCorrente, i);
+                        }
                     }
                 }
             }
         }
+        else{
+            serializzazione.log("Nessuna lezione da sostituire per " + docente.getCognome() + " oggi (" + giornataOdierna + ").");
+            serializzazione.log("=============================================");
+        }
+
     }
 
     // NUOVO METODO: Processa una singola ora della lezione
     private void processaSingolaOra(Docente docenteAssente, Lezione lezione, String orario, int indiceOra) {
-        System.out.println("=== Cercando sostituto per " + docenteAssente.getCognome() +
+        serializzazione.log("=== Cercando sostituto per " + docenteAssente.getCognome() +
                 " alle " + orario + " (" + lezione.getSezione() + ") ===");
 
         Docente sostituto = null;
@@ -138,10 +146,10 @@ public class GestoreSostituzioni {
         // Salva la sostituzione per questa ora specifica
         if (sostituto != null) {
             salvaSostituzione(docenteAssente, lezione, sostituto, orario);
-            System.out.println("✓ Sostituzione trovata: " + docenteAssente.getCognome() +
+            serializzazione.log("✓ Sostituzione trovata: " + docenteAssente.getCognome() +
                     " -> " + sostituto.getCognome() + " alle " + orario);
         } else {
-            System.out.println("✗ Nessun sostituto trovato per " + docenteAssente.getCognome() +
+            serializzazione.error("✗ Nessun sostituto trovato per " + docenteAssente.getCognome() +
                     " alle " + orario);
         }
     }
@@ -152,7 +160,7 @@ public class GestoreSostituzioni {
             Docente coDocente = gestoreDati.getDocenteByCognome(cognomeCodocente);
             if (coDocente != null && !isAssente(coDocente) &&
                     !eGiaUtilizzatoAllaStessaOra(coDocente, orario)) {
-                System.out.println("Trovato codocente: " + cognomeCodocente);
+                serializzazione.log("Trovato codocente: " + cognomeCodocente);
                 return coDocente;
             }
         }
@@ -167,7 +175,7 @@ public class GestoreSostituzioni {
                 if (!isAssente(docenteClasse) &&
                         !eGiaUtilizzatoAllaStessaOra(docenteClasse, orario) &&
                         docenteHaDisposizione(docenteClasse, orario)) {
-                    System.out.println("Trovato docente della stessa classe: " + docenteClasse.getCognome());
+                    serializzazione.log("Trovato docente della stessa classe: " + docenteClasse.getCognome());
                     return docenteClasse;
                 }
             }
@@ -186,7 +194,7 @@ public class GestoreSostituzioni {
                     docente.insegnaMateria(materia) &&
                     (!isQuinta || !isDocenteInsegnandoInUnaQuinta(docente))) {
 
-                System.out.println("Trovato docente con materia affine: " + docente.getCognome());
+                serializzazione.log("Trovato docente con materia affine: " + docente.getCognome());
                 return docente;
             }
         }
@@ -201,7 +209,7 @@ public class GestoreSostituzioni {
                     docenteHaDisposizione(docente, orario) &&
                     (!isQuinta || !isDocenteInsegnandoInUnaQuinta(docente))) {
 
-                System.out.println("Trovato docente disponibile: " + docente.getCognome());
+                serializzazione.log("Trovato docente disponibile: " + docente.getCognome());
                 return docente;
             }
         }
@@ -222,7 +230,7 @@ public class GestoreSostituzioni {
                     !eGiaUtilizzatoAllaStessaOra(docente, orario) &&
                     !docenteHaLezione(docente, orario)) {
 
-                System.out.println("Trovato docente libero: " + docente.getCognome());
+                serializzazione.log("Trovato docente libero: " + docente.getCognome());
                 return docente;
             }
         }
@@ -433,13 +441,22 @@ public class GestoreSostituzioni {
         return risultato;
     }
 
-    public void stampaSostituzioni() {
-        System.out.println("=== RIEPILOGO SOSTITUZIONI ===");
+    public String stampaSostituzioni() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("====================RIEPILOGO SOSTITUZIONI=========================\n");
         for (Sostituzione sost : sostituzioni.values()) {
-            System.out.println(sost.docenteAssente.getCognome() + " -> " +
-                    (sost.docenteSostituto != null ? sost.docenteSostituto.getCognome() : "NESSUNO") +
-                    " alle " + sost.orario + " (" + sost.lezione.getSezione() + ")");
+            sb.append(sost.docenteAssente.getCognome())
+                    .append(" -> ")
+                    .append(sost.docenteSostituto != null ? sost.docenteSostituto.getCognome() : "NESSUNO")
+                    .append(" alle ")
+                    .append(sost.orario)
+                    .append(" (")
+                    .append(sost.lezione.getSezione())
+                    .append(")\n");
         }
-        System.out.println("=== FINE RIEPILOGO ===");
+        sb.append("===================================================================\n");
+
+        return sb.toString();
     }
 }

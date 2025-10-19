@@ -254,7 +254,7 @@ public class MenuPrincipale extends JFrame {
         personalizzaBottone(bGestioneOre, new Color(255, 159, 67), Color.BLACK);
 
         bSostituzione.addActionListener(e -> {
-            new InterfacciaAssenti(gestoreDati);
+            new InterfacciaAssenti(gestoreDati,serializzazione);
         });
 
         bAggiornazione.addActionListener(e -> {
@@ -263,7 +263,7 @@ public class MenuPrincipale extends JFrame {
         });
 
         bGestioneOre.addActionListener(e -> {
-            new InterfacciaGestioneOreRecupero(gestoreDati);
+            new InterfacciaGestioneOreRecupero(gestoreDati,serializzazione);
             dispose();
         });
 

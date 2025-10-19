@@ -3,6 +3,7 @@ package Components;
 import Entities.Docente;
 import Managers.GestoreDati;
 import Managers.GestoreSostituzioni;
+import Managers.Serializzazione;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -31,20 +32,21 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final Map<Docente, Boolean> statoCheckbox = new HashMap<>(); // AGGIUNTA: memorizza lo stato delle checkbox
 
     private GestoreSostituzioni gestoreSostituzioni;
+    private Serializzazione serializzazione;
 
     private final JPanel panelCentro;
     private final JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
     private final JLabel conteggioLabel = new JLabel("Docenti selezionati: 0");
     private final JTextField campoRicerca;
 
-    public InterfacciaAssenti(GestoreDati gestoreDati) {
+    public InterfacciaAssenti(GestoreDati gestoreDati, Serializzazione serializzazione) {
         this.setTitle("Sostituzioni");
         this.setSize(700, 500);
         this.setLocationRelativeTo(null);
         this.setLayout(new BorderLayout(0, 20));
         this.getContentPane().setBackground(COLORE_SFONDO);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
+        this.serializzazione = serializzazione;
         this.docenti = new ArrayList<>(gestoreDati.getListaDocenti());
         this.docentiFiltrati = new ArrayList<>(docenti);
 
@@ -210,7 +212,9 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                         options[0]
                 );
                 if (scelta == JOptionPane.YES_OPTION) {
-                    gestoreSostituzioni = new GestoreSostituzioni(gestoreDati,getDocentiAssenti());
+                    serializzazione.log("===================================================================");
+                    serializzazione.log("Avvio calcolo sostituzioni per " + selezionati + " docenti assenti.");
+                    gestoreSostituzioni = new GestoreSostituzioni(gestoreDati,serializzazione,getDocentiAssenti());
                     gestoreSostituzioni.risultato();
                     dispose();
                 }
@@ -377,8 +381,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 if (docente != null) {
                     docentiAssenti.add(docente);
                 }
-                else
-                    System.out.println("Docente non trovato");
             }
         }
         return docentiAssenti;

@@ -12,8 +12,14 @@ import java.io.IOException;
 import java.util.List;
 
 public class LettoreCSV {
+    private Serializzazione serializzazione;
+    private GestoreDati gestoreDati;
 
-    public void leggiFile(String path, GestoreDati gestoreDati) throws IOException, CsvException {
+    public void leggiFile(String path, GestoreDati gestoreDati,Serializzazione serializzazione) throws IOException, CsvException {
+
+        this.serializzazione = serializzazione;
+        this.gestoreDati = gestoreDati;
+
         try (CSVReader reader = new CSVReaderBuilder(new FileReader(path))
                 .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
                 .build()) {
@@ -26,15 +32,19 @@ public class LettoreCSV {
             for (String[] entry : entries) {
                 if (entry.length < 8) continue; 
 
-                processaRiga(entry, gestoreDati);
+                processaRiga(entry);
             }
 
             gestoreDati.organizzaClassi();
             gestoreDati.organizzaDocenti();
+            serializzazione.log("Importazione dati da CSV completata con successo.");
+            serializzazione.log("Lezioni importate: " + gestoreDati.getListaLezioni().size());
+            serializzazione.log("Docenti importati: " + gestoreDati.getListaDocenti().size());
+            serializzazione.log("Classi importate: " + gestoreDati.getListaClassi().size());
         }
     }
 
-    private void processaRiga(String[] entry, GestoreDati gestoreDati) {
+    private void processaRiga(String[] entry) {
         try {
             int numero = (int) Double.parseDouble(entry[0].trim());
             String durata = entry[1].trim();
@@ -60,7 +70,7 @@ public class LettoreCSV {
                 gestoreDati.creaOrarioClasse(classe);
             }
         } catch (NumberFormatException e) {
-            System.err.println("Errore nel parsing del numero lezione: " + entry[0]);
+            serializzazione.log("Errore nel parsing del numero lezione: " + entry[0]);
         }
     }
 }

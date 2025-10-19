@@ -1,8 +1,6 @@
 package Components;
 
-import Entities.Classe;
 import Managers.GestoreDati;
-import Managers.LettoreCSV;
 import Managers.Serializzazione;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -22,19 +20,19 @@ public class InterfacciaAggiornamentoFile extends JFrame {
     private JLabel labelFileSelezionato;
     private JButton bottoneDocenti, bottoneClassi, bottoneDisposizioni, bottoneIndietro, bottoneCambiaFile;
 
-    private final Font fontTitolo = new Font("Segoe UI", Font.BOLD, 24);
-    private final Font fontSottotitolo = new Font("Segoe UI", Font.PLAIN, 14);
-    private final Font fontBottoni = new Font("Segoe UI", Font.BOLD, 14);
-    private final Font fontInfo = new Font("Segoe UI", Font.ITALIC, 12);
+    private Font fontTitolo = new Font("Segoe UI", Font.BOLD, 24);
+    private Font fontSottotitolo = new Font("Segoe UI", Font.PLAIN, 14);
+    private Font fontBottoni = new Font("Segoe UI", Font.BOLD, 14);
+    private Font fontInfo = new Font("Segoe UI", Font.ITALIC, 12);
 
     private final Serializzazione serializzazione;
-    private final GestoreDati gestoreDati;
+    private GestoreDati gestoreDati;
     public InterfacciaAggiornamentoFile(GestoreDati gestoreDati, Serializzazione serializzazione) {
         this.serializzazione = serializzazione;
         this.gestoreDati = gestoreDati;
         setTitle("Aggiornamento File - Gestione Orario Scolastico");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(800, 550); 
+        setSize(800, 550);
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -98,9 +96,9 @@ public class InterfacciaAggiornamentoFile extends JFrame {
             }
         });
 
-        //bottoneCambiaFile.addActionListener(e -> cambiaFileSelezionato());
+        bottoneCambiaFile.addActionListener(e -> cambiaFileSelezionato());
 
-        
+
         JPanel pannelloBottoneCambio = new JPanel(new FlowLayout());
         pannelloBottoneCambio.setBackground(coloreSfondo);
         pannelloBottoneCambio.add(bottoneCambiaFile);
@@ -124,9 +122,7 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         pannelloBottoni.add(bottoneClassi);
         pannelloBottoni.add(bottoneIndietro);
 
-        bottoneDocenti.addActionListener(e -> {
-            new InterfacciaAggiornamentoClassiDocenti(gestoreDati,serializzazione);
-        });
+        bottoneDocenti.addActionListener(e -> mostraMessaggio("Orario dei docenti aggiornato"));
         bottoneDisposizioni.addActionListener(e -> mostraMessaggio("Disposizioni aggiornate"));
         bottoneClassi.addActionListener(e -> mostraMessaggio("Orario delle classi aggiornato"));
         bottoneIndietro.addActionListener(e -> {
@@ -134,7 +130,6 @@ public class InterfacciaAggiornamentoFile extends JFrame {
             dispose();
         });
     }
-
 
     private JButton creaPulsante(String testo, Color colore) {
         JButton bottone = new JButton(testo);
@@ -163,6 +158,31 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         labelFileSelezionato.setText(nomeFile);
     }
 
+
+    private void cambiaFileSelezionato() {
+        Object[] options = {"<html><font color=#000000>Si</font></html>","<html><font color=#000000>No</font></html>"};
+        int scelta = JOptionPane.showOptionDialog(
+                this,
+                "Vuoi chiudere questa finestra e selezionare un nuovo file?\nTutti i progressi non salvati andranno persi.",
+                "Cambia File",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+
+        if (scelta == JOptionPane.YES_OPTION) {
+            serializzazione.eliminaDati();
+            try{
+                new InterfacciaSelezioneFile(new GestoreDati(), serializzazione);
+            }catch (Exception e){
+                JOptionPane.showMessageDialog(this, "Errore nell'apertura della pagina iniziale: " + e.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+            }
+            dispose();
+        }
+    }
+
     private void mostraMessaggio(String testo) {
         JOptionPane.showMessageDialog(this, testo, "Informazione", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -170,7 +190,8 @@ public class InterfacciaAggiornamentoFile extends JFrame {
     public void setFileSelezionato(String nomeFile) {
         aggiornaLabelFileSelezionato(nomeFile);
     }
-    
+
+
     public String getFileSelezionato() {
         return labelFileSelezionato.getText();
     }
