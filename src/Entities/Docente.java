@@ -13,6 +13,7 @@ public class Docente implements Serializable {
     private final ArrayList<Classe> listaClassi;
     private final ArrayList<Lezione> listaLezioni;
     private final ArrayList<String> listaMaterie;
+    private int oreDaRecuperare;
 
     public Docente(String cognome) {
         this.cognome = Objects.requireNonNull(cognome, "Cognome non può essere null");
@@ -53,6 +54,16 @@ public class Docente implements Serializable {
         }
         return false;
     }
+
+    public void aggiungiOraDaRecuperare(int ore){
+        oreDaRecuperare += ore;
+    }
+
+    public void rimuoviOraDaRecuperare(int ore){
+        if(oreDaRecuperare > 0 && (oreDaRecuperare - ore) > 0){
+            oreDaRecuperare = oreDaRecuperare - ore;
+        }
+    }
     
     public void rimuoviClasse(Classe classe) {
         listaClassi.remove(classe);
@@ -61,7 +72,6 @@ public class Docente implements Serializable {
     public void rimuoviMateria(String materia) {
         listaMaterie.remove(materia);
     }
-
     
     public boolean insegnaInClasse(String sezione) {
         return listaClassi.stream()
