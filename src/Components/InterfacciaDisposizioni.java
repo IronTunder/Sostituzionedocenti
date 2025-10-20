@@ -164,7 +164,7 @@ public class InterfacciaDisposizioni extends JFrame {
         Docente docente = gestoreDati.getDocenteByCognome(cognomeDocente);
         if (docente == null) return;
 
-       // docente.getDisposizioni().clear();
+        // docente.getDisposizioni().clear();
 
         for (Map.Entry<String, JCheckBox> entry : checkboxesDisposizioni.entrySet()) {
             if (entry.getValue().isSelected()) {

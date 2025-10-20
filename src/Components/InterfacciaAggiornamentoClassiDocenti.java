@@ -2,7 +2,6 @@ package Components;
 
 import Entities.Classe;
 import Entities.Docente;
-import Entities.Lezione;
 import Managers.GestoreDati;
 import Managers.Serializzazione;
 
@@ -206,32 +205,11 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         return pannelloSelezione;
     }
 
-    // Aggiungi questa interfaccia interna alla classe
-    private interface AscoltatoreCelleTabella {
-        void onLezioneCliccata(Lezione lezione);
-        void onCellaVuotaCliccata(String giorno, String orario, Object entita);
-    }
-
-    // Sostituisci i metodi aggiornaTabellaClasse e aggiornaTabellaDocente:
     private void aggiornaTabellaClasse() {
         pannelloOrario.removeAll();
         Classe nuovaClasse = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
         if (nuovaClasse != null) {
-            TabellaOrariaInterattiva tabella = new TabellaOrariaInterattiva(
-                    nuovaClasse,
-                    new TabellaOrariaInterattiva.AscoltatoreCelle() {
-                        @Override
-                        public void onLezioneCliccata(Lezione lezione) {
-                            gestisciClickLezione(lezione);
-                        }
-
-                        @Override
-                        public void onCellaVuotaCliccata(String giorno, String orario, Object entita) {
-                            gestisciClickCellaVuota(giorno, orario, (Classe) entita);
-                        }
-                    }
-            );
-            pannelloOrario.add(tabella, BorderLayout.CENTER);
+            pannelloOrario.add(new TabellaOraria(nuovaClasse), BorderLayout.CENTER);
         }
         pannelloOrario.revalidate();
         pannelloOrario.repaint();
@@ -241,94 +219,10 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloOrario.removeAll();
         Docente docenteSelezionato = gestoreDati.getDocenteByCognome((String) comboDocenti.getSelectedItem());
         if (docenteSelezionato != null) {
-            TabellaOrariaInterattiva tabella = new TabellaOrariaInterattiva(
-                    docenteSelezionato,
-                    new TabellaOrariaInterattiva.AscoltatoreCelle() {
-                        @Override
-                        public void onLezioneCliccata(Lezione lezione) {
-                            gestisciClickLezione(lezione);
-                        }
-
-                        @Override
-                        public void onCellaVuotaCliccata(String giorno, String orario, Object entita) {
-                            gestisciClickCellaVuota(giorno, orario, (Docente) entita);
-                        }
-                    }
-            );
-            pannelloOrario.add(tabella, BorderLayout.CENTER);
+            pannelloOrario.add(new TabellaOraria(docenteSelezionato), BorderLayout.CENTER);
         }
         pannelloOrario.revalidate();
         pannelloOrario.repaint();
-    }
-
-    // Aggiungi questi metodi per gestire gli eventi:
-    private void gestisciClickLezione(Lezione lezione) {
-        int scelta = JOptionPane.showOptionDialog(
-                this,
-                "Cosa vuoi fare con questa lezione?",
-                "Gestione Lezione - " + lezione.getMateria(),
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                new String[]{"Modifica", "Elimina", "Annulla"},
-                "Modifica"
-        );
-
-        switch (scelta) {
-            case 0: // Modifica
-                modificaLezione(lezione);
-                break;
-            case 1: // Elimina
-                eliminaLezione(lezione);
-                break;
-        }
-    }
-
-    private void gestisciClickCellaVuota(String giorno, String orario, Object entita) {
-        String tipo = entita instanceof Classe ? "classe" : "docente";
-        String nome = entita instanceof Classe ?
-                ((Classe) entita).getSezione() : ((Docente) entita).getCognome();
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Aggiungi nuova lezione per:\n" +
-                        (tipo.equals("classe") ? "Classe: " : "Docente: ") + nome + "\n" +
-                        "Giorno: " + giorno + "\n" +
-                        "Orario: " + orario,
-                "Nuova Lezione",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-
-        // TODO: Implementare la logica di aggiunta lezione
-        System.out.println("Aggiungi lezione per " + tipo + " " + nome + " il " + giorno + " alle " + orario);
-    }
-
-    private void modificaLezione(Lezione lezione) {
-        // TODO: Implementare modifica lezione
-        JOptionPane.showMessageDialog(this, "Modifica lezione: " + lezione.getMateria());
-    }
-
-    private void eliminaLezione(Lezione lezione) {
-        int conferma = JOptionPane.showConfirmDialog(
-                this,
-                "Sei sicuro di voler eliminare la lezione di " + lezione.getMateria() + "?",
-                "Conferma Eliminazione",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (conferma == JOptionPane.YES_OPTION) {
-            // TODO: Implementare eliminazione lezione
-            JOptionPane.showMessageDialog(this, "Lezione eliminata!");
-            aggiornaTabellaCorrente();
-        }
-    }
-
-    private void aggiornaTabellaCorrente() {
-        if (comboClassi.isVisible()) {
-            aggiornaTabellaClasse();
-        } else {
-            aggiornaTabellaDocente();
-        }
     }
 
     private JPanel creaPannelloDestro() {
