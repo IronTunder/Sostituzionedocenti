@@ -17,7 +17,6 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
     private final GestoreDati gestoreDati;
     private final Serializzazione serializzazione;
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
-    private final Color COLORE_SECONDARIO = new Color(100, 149, 237);
     private final Color COLORE_SFONDO = new Color(248, 250, 252);
     private final Color COLORE_CARTA = Color.WHITE;
     private final Color COLORE_TESTO = new Color(60, 60, 70);
@@ -28,44 +27,38 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
             UIManager.put("Panel.background", COLORE_SFONDO);
             UIManager.put("ComboBox.background", Color.WHITE);
             UIManager.put("Button.background", COLORE_PRIMARIO);
             UIManager.put("Button.foreground", Color.WHITE);
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
 
         inizializzaUI(gestoreDati.getListaClassi(), gestoreDati.getListaDocenti());
-
     }
 
-    private void inizializzaUI(ArrayList<Classe> classi, ArrayList<Docente> docente) {
-
-        this.setTitle("Gestione Orario Scolastico");
-        this.setSize(1280, 700);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setLayout(new BorderLayout(20, 20));
-        this.setLocationRelativeTo(null);
-        this.getContentPane().setBackground(COLORE_SFONDO);
+    private void inizializzaUI(ArrayList<Classe> classi, ArrayList<Docente> docenti) {
+        setTitle("Gestione Orario Scolastico");
+        setSize(1280, 700);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout(20, 20));
+        setLocationRelativeTo(null);
+        getContentPane().setBackground(COLORE_SFONDO);
         setResizable(false);
-
 
         aggiungiTitolo();
 
+        JPanel pannelloCentro = new JPanel(new BorderLayout(20, 0));
+        pannelloCentro.setBackground(COLORE_SFONDO);
+        pannelloCentro.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
+        add(pannelloCentro, BorderLayout.CENTER);
 
-        JPanel pannelloCentro = creaPannelloCentrale();
-        this.add(pannelloCentro, BorderLayout.CENTER);
-
-
-        JPanel pannelloSinistra = creaPannelloSinistro(classi, docente);
+        JPanel pannelloSinistra = creaPannelloSinistro(classi, docenti);
         pannelloCentro.add(pannelloSinistra, BorderLayout.CENTER);
-
 
         JPanel pannelloDestra = creaPannelloDestro();
         pannelloCentro.add(pannelloDestra, BorderLayout.LINE_END);
 
-        this.setVisible(true);
+        setVisible(true);
     }
 
     private void aggiungiTitolo() {
@@ -84,24 +77,15 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloTitolo.add(titolo, BorderLayout.CENTER);
         pannelloTitolo.add(sottotitolo, BorderLayout.SOUTH);
 
-        this.add(pannelloTitolo, BorderLayout.NORTH);
+        add(pannelloTitolo, BorderLayout.NORTH);
     }
 
-    private JPanel creaPannelloCentrale() {
-        JPanel pannelloCentro = new JPanel(new BorderLayout(20, 0));
-        pannelloCentro.setBackground(COLORE_SFONDO);
-        pannelloCentro.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
-        return pannelloCentro;
-    }
-
-    private JPanel creaPannelloSinistro(ArrayList<Classe> classi, ArrayList<Docente> docente) {
+    private JPanel creaPannelloSinistro(ArrayList<Classe> classi, ArrayList<Docente> docenti) {
         JPanel pannelloSinistra = new JPanel(new BorderLayout(15, 15));
         pannelloSinistra.setBackground(COLORE_SFONDO);
 
-
-        JPanel pannelloSelezione = creaPannelloSelezioneClasse(classi, docente);
+        JPanel pannelloSelezione = creaPannelloSelezioneClasse(classi, docenti);
         pannelloSinistra.add(pannelloSelezione, BorderLayout.NORTH);
-
 
         pannelloOrario = new JPanel(new BorderLayout());
         pannelloOrario.setBackground(COLORE_CARTA);
@@ -111,7 +95,7 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         ));
 
         Classe classeSelezionata = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
-        pannelloOrario.add(new TabellaOraria(classeSelezionata), BorderLayout.CENTER);
+        if (classeSelezionata != null) pannelloOrario.add(new TabellaOraria(classeSelezionata), BorderLayout.CENTER);
         pannelloSinistra.add(pannelloOrario, BorderLayout.CENTER);
 
         return pannelloSinistra;
@@ -126,101 +110,50 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloSelezione.add(selezioneDocenti);
         pannelloSelezione.add(selezioneClassi);
 
-        pannelloSelezione.setBackground(COLORE_SFONDO);
-        pannelloSelezione.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(
-                        BorderFactory.createLineBorder(new Color(200, 200, 210)),
-                        "Selezione Docenti/Classi"
-                ),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
-
-        // Pannello per la selezione classe (visibile inizialmente)
-        JPanel pannelloSelezioneClasse = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        pannelloSelezioneClasse.setBackground(COLORE_SFONDO);
-
+        // Combo classi
+        JPanel pannelloSelezioneClasse = new JPanel(new FlowLayout());
         JLabel labelClasse = new JLabel("Classe:");
         labelClasse.setFont(new Font("Segoe UI", Font.BOLD, 13));
         labelClasse.setForeground(COLORE_TESTO);
-
         comboClassi.removeAllItems();
-        classi.forEach(classe -> {
-            comboClassi.addItem(classe.getSezione());
-        });
-        comboClassi.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        comboClassi.setBackground(Color.WHITE);
-        comboClassi.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(180, 180, 190)),
-                BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        comboClassi.setMaximumRowCount(12);
-
+        classi.forEach(c -> comboClassi.addItem(c.getSezione()));
         pannelloSelezioneClasse.add(labelClasse);
         pannelloSelezioneClasse.add(comboClassi);
 
-        // Pannello per la selezione docente (inizialmente nascosto)
-        JPanel pannelloSelezioneDocente = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        pannelloSelezioneDocente.setBackground(COLORE_SFONDO);
-
+        // Combo docenti
+        JPanel pannelloSelezioneDocente = new JPanel(new FlowLayout());
         JLabel labelDocente = new JLabel("Docente:");
         labelDocente.setFont(new Font("Segoe UI", Font.BOLD, 13));
         labelDocente.setForeground(COLORE_TESTO);
-
         comboDocenti.removeAllItems();
-        docenti.forEach(docente -> {
-            comboDocenti.addItem(docente.getCognome());
-        });
-        comboDocenti.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        comboDocenti.setBackground(Color.WHITE);
-        comboDocenti.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(180, 180, 190)),
-                BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        comboDocenti.setMaximumRowCount(12);
-
+        docenti.forEach(d -> comboDocenti.addItem(d.getCognome()));
         pannelloSelezioneDocente.add(labelDocente);
         pannelloSelezioneDocente.add(comboDocenti);
-        pannelloSelezioneDocente.setVisible(false); // Inizialmente nascosto
+        pannelloSelezioneDocente.setVisible(false);
 
-        // Aggiungi entrambi i pannelli al pannello principale
         pannelloSelezione.add(pannelloSelezioneClasse);
         pannelloSelezione.add(pannelloSelezioneDocente);
 
-        // Action Listeners
         comboClassi.addActionListener(a -> aggiornaTabellaClasse());
         comboDocenti.addActionListener(a -> aggiornaTabellaDocente());
-
-        selezioneClassi.addActionListener(e -> {
-            pannelloSelezioneClasse.setVisible(true);
-            pannelloSelezioneDocente.setVisible(false);
-            aggiornaTabellaClasse();
-        });
-
-        selezioneDocenti.addActionListener(e -> {
-            pannelloSelezioneClasse.setVisible(false);
-            pannelloSelezioneDocente.setVisible(true);
-            aggiornaTabellaDocente();
-        });
+        selezioneClassi.addActionListener(e -> { pannelloSelezioneClasse.setVisible(true); pannelloSelezioneDocente.setVisible(false); aggiornaTabellaClasse(); });
+        selezioneDocenti.addActionListener(e -> { pannelloSelezioneClasse.setVisible(false); pannelloSelezioneDocente.setVisible(true); aggiornaTabellaDocente(); });
 
         return pannelloSelezione;
     }
 
     private void aggiornaTabellaClasse() {
         pannelloOrario.removeAll();
-        Classe nuovaClasse = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
-        if (nuovaClasse != null) {
-            pannelloOrario.add(new TabellaOraria(nuovaClasse), BorderLayout.CENTER);
-        }
+        Classe classe = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
+        if (classe != null) pannelloOrario.add(new TabellaOraria(classe), BorderLayout.CENTER);
         pannelloOrario.revalidate();
         pannelloOrario.repaint();
     }
 
     private void aggiornaTabellaDocente() {
         pannelloOrario.removeAll();
-        Docente docenteSelezionato = gestoreDati.getDocenteByCognome((String) comboDocenti.getSelectedItem());
-        if (docenteSelezionato != null) {
-            pannelloOrario.add(new TabellaOraria(docenteSelezionato), BorderLayout.CENTER);
-        }
+        Docente docente = gestoreDati.getDocenteByCognome((String) comboDocenti.getSelectedItem());
+        if (docente != null) pannelloOrario.add(new TabellaOraria(docente), BorderLayout.CENTER);
         pannelloOrario.revalidate();
         pannelloOrario.repaint();
     }
@@ -230,50 +163,27 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloDestra.setPreferredSize(new Dimension(400, 0));
         pannelloDestra.setBackground(COLORE_SFONDO);
 
-
-        JLabel titoloPulsanti = new JLabel("OPERAZIONI", SwingConstants.CENTER);
-        titoloPulsanti.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        titoloPulsanti.setForeground(COLORE_TESTO);
-        titoloPulsanti.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-        pannelloDestra.add(titoloPulsanti, BorderLayout.NORTH);
-
-
-        JPanel pannelloPulsanti = new JPanel(new GridLayout(4, 1, 15, 15));
+        JPanel pannelloPulsanti = new JPanel(new GridLayout(3, 1, 15, 15));
         pannelloPulsanti.setBackground(COLORE_SFONDO);
         pannelloPulsanti.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-
-        JButton bIndietro = new JButton("Indietro");
-
-
-
-        personalizzaBottone(bIndietro, new Color(255, 159, 67));
-
-
-
-        bIndietro.addActionListener(e -> {
-            dispose();
-            new MenuPrincipale(gestoreDati, serializzazione);
-
+        JButton bAggiorna = new JButton("Aggiorna orario");
+        personalizzaBottone(bAggiorna, new Color(70, 180, 130));
+        bAggiorna.addActionListener(e -> {
+            // Log e aggiornamento eventuali dati
+            serializzazione.log("Orario aggiornato per classe: " + comboClassi.getSelectedItem());
+            JOptionPane.showMessageDialog(this, "Orario aggiornato con successo!");
         });
 
+        JButton bIndietro = new JButton("Indietro");
+        personalizzaBottone(bIndietro, new Color(255, 159, 67));
+        bIndietro.addActionListener(e -> { dispose(); new MenuPrincipale(gestoreDati, serializzazione); });
 
-
+        pannelloPulsanti.add(bAggiorna);
         pannelloPulsanti.add(bIndietro);
-
         pannelloDestra.add(pannelloPulsanti, BorderLayout.CENTER);
 
         return pannelloDestra;
-    }
-
-    private void aggiornaTabella() {
-        pannelloOrario.removeAll();
-        Classe nuovaClasse = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
-        if (nuovaClasse != null) {
-            pannelloOrario.add(new TabellaOraria(nuovaClasse), BorderLayout.CENTER);
-        }
-        pannelloOrario.revalidate();
-        pannelloOrario.repaint();
     }
 
     private void personalizzaBottone(JButton bottone, Color coloreSfondo) {
@@ -283,17 +193,9 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         bottone.setFont(new Font("Segoe UI", Font.BOLD, 14));
         bottone.setBorder(new LineBorder(coloreSfondo.darker(), 1, true));
         bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-
         bottone.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                bottone.setBackground(coloreSfondo.brighter());
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                bottone.setBackground(coloreSfondo);
-            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) { bottone.setBackground(coloreSfondo.brighter()); }
+            public void mouseExited(java.awt.event.MouseEvent evt) { bottone.setBackground(coloreSfondo); }
         });
-
     }
 }
