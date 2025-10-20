@@ -3,9 +3,14 @@ package Managers;
 import Entities.Classe;
 import Entities.Docente;
 import Entities.Lezione;
+import com.itextpdf.text.*;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.pdf.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -15,23 +20,24 @@ public class GestoreSostituzioni {
 
     private final ArrayList<Docente> docentiAssenti;
     private final Map<String, Sostituzione> sostituzioni;
-    private final Set<String> docentiUtilizzatiPerOra; // Modifica: tiene traccia dei docenti già usati per ogni orario
+    private final Set<String> docentiUtilizzatiPerOra;
 
     private final String giornataOdierna;
     private final String[] orari = {"08:00","09:00","10:00","11:10","12:05","13:00"};
 
-    // Classe interna per rappresentare una sostituzione
     private static class Sostituzione {
         final Docente docenteAssente;
         final Docente docenteSostituto;
         final Lezione lezione;
         final String orario;
+        final String tipoDiSostituzione;
 
-        Sostituzione(Docente docenteAssente, Docente docenteSostituto, Lezione lezione, String orario) {
+        Sostituzione(Docente docenteAssente, Docente docenteSostituto, Lezione lezione, String orario, String tipoDiSostituzione) {
             this.docenteAssente = docenteAssente;
             this.docenteSostituto = docenteSostituto;
             this.lezione = lezione;
             this.orario = orario;
+            this.tipoDiSostituzione = tipoDiSostituzione;
         }
     }
 
@@ -39,7 +45,7 @@ public class GestoreSostituzioni {
         this.docentiAssenti = docentiAssenti;
         this.gestoreDati = gestoreDati;
         this.sostituzioni = new HashMap<>();
-        this.docentiUtilizzatiPerOra = new HashSet<>(); // Inizializza il set
+        this.docentiUtilizzatiPerOra = new HashSet<>();
         this.serializzazione = serializzazione;
 
         int giornoSettimana = LocalDateTime.now().getDayOfWeek().getValue();
@@ -104,48 +110,47 @@ public class GestoreSostituzioni {
 
     }
 
-    // NUOVO METODO: Processa una singola ora della lezione
     private void processaSingolaOra(Docente docenteAssente, Lezione lezione, String orario, int indiceOra) {
         serializzazione.log("=== Cercando sostituto per " + docenteAssente.getCognome() +
                 " alle " + orario + " (" + lezione.getSezione() + ") ===");
 
         Docente sostituto = null;
+        String tipoSostituzione = "Nessuna sostituzione";
 
-        // 1. Verifica se è una lezione in compresenza
         if (lezione.getCoDocente().equalsIgnoreCase("S")) {
             sostituto = trovaCoDocente(lezione, orario);
+            tipoSostituzione = "Compresenza";
         }
 
-        // 2. Cerca tra i docenti della stessa classe (Disposizione)
         if (sostituto == null) {
             sostituto = trovaDocenteStessaClasse(lezione, orario);
+            tipoSostituzione = "Classe affine";
         }
 
-        // 3. Cerca insegnanti con materia affine
         if (sostituto == null) {
             boolean isQuinta = isAQuinta(lezione);
             sostituto = trovaDocenteMateriaAffine(lezione, orario, isQuinta);
+            tipoSostituzione = "Materia Affine";
         }
 
-        // 4. Cerca qualsiasi docente disponibile (con Disposizione)
         if (sostituto == null) {
             boolean isQuinta = isAQuinta(lezione);
             sostituto = trovaDocenteDisponibile(lezione, orario, isQuinta);
+            tipoSostituzione = "Disposizione";
         }
 
-        // 5. Cerca ore da recuperare (se implementato nel sistema)
         if (sostituto == null) {
             sostituto = trovaDocenteOreDaRecuperare(lezione, orario);
+            tipoSostituzione = "Ore da recuperare";
         }
 
-        // 6. Cerca qualsiasi docente libero (anche senza Disposizione)
         if (sostituto == null) {
             sostituto = trovaDocenteLibero(lezione, orario);
+            tipoSostituzione = "Libero a pagamento";
         }
 
-        // Salva la sostituzione per questa ora specifica
         if (sostituto != null) {
-            salvaSostituzione(docenteAssente, lezione, sostituto, orario);
+            salvaSostituzione(docenteAssente, lezione, sostituto, orario,tipoSostituzione);
             serializzazione.log("✓ Sostituzione trovata: " + docenteAssente.getCognome() +
                     " -> " + sostituto.getCognome() + " alle " + orario);
         } else {
@@ -154,12 +159,11 @@ public class GestoreSostituzioni {
         }
     }
 
-    // 1. METODO PER TROVARE CODOCENTE
     private Docente trovaCoDocente(Lezione lezione, String orario) {
         for (String cognomeCodocente : lezione.getCognomi()) {
             Docente coDocente = gestoreDati.getDocenteByCognome(cognomeCodocente);
-            if (coDocente != null && isAssente(coDocente) &&
-                    eGiaUtilizzatoAllaStessaOra(coDocente, orario)) {
+            if (coDocente != null && isNotAssente(coDocente) &&
+                    nonEGiaUsatoAllaStessaOra(coDocente, orario)) {
                 serializzazione.log("Trovato codocente: " + cognomeCodocente);
                 return coDocente;
             }
@@ -167,13 +171,12 @@ public class GestoreSostituzioni {
         return null;
     }
 
-    // 2. METODO PER TROVARE DOCENTE DELLA STESSA CLASSE
     private Docente trovaDocenteStessaClasse(Lezione lezione, String orario) {
         Classe classe = gestoreDati.getClasseBySezione(lezione.getSezione());
         if (classe != null) {
             for (Docente docenteClasse : classe.getDocenti()) {
-                if (isAssente(docenteClasse) &&
-                        eGiaUtilizzatoAllaStessaOra(docenteClasse, orario) &&
+                if (isNotAssente(docenteClasse) &&
+                        nonEGiaUsatoAllaStessaOra(docenteClasse, orario) &&
                         docenteHaDisposizione(docenteClasse, orario)) {
                     serializzazione.log("Trovato docente della stessa classe: " + docenteClasse.getCognome());
                     return docenteClasse;
@@ -183,13 +186,12 @@ public class GestoreSostituzioni {
         return null;
     }
 
-    // 3. METODO PER TROVARE DOCENTE CON MATERIA AFFINE
     private Docente trovaDocenteMateriaAffine(Lezione lezione, String orario, boolean isQuinta) {
         String materia = lezione.getMateria();
 
         for (Docente docente : gestoreDati.getListaDocenti()) {
-            if (isAssente(docente) &&
-                    eGiaUtilizzatoAllaStessaOra(docente, orario) &&
+            if (isNotAssente(docente) &&
+                    nonEGiaUsatoAllaStessaOra(docente, orario) &&
                     docenteHaDisposizione(docente, orario) &&
                     docente.insegnaMateria(materia) &&
                     (!isQuinta || isDocenteInsegnandoInUnaQuinta(docente))) {
@@ -201,11 +203,10 @@ public class GestoreSostituzioni {
         return null;
     }
 
-    // 4. METODO PER TROVARE QUALSIASI DOCENTE DISPONIBILE
     private Docente trovaDocenteDisponibile(Lezione lezione, String orario, boolean isQuinta) {
         for (Docente docente : gestoreDati.getListaDocenti()) {
-            if (isAssente(docente) &&
-                    eGiaUtilizzatoAllaStessaOra(docente, orario) &&
+            if (isNotAssente(docente) &&
+                    nonEGiaUsatoAllaStessaOra(docente, orario) &&
                     docenteHaDisposizione(docente, orario) &&
                     (!isQuinta || isDocenteInsegnandoInUnaQuinta(docente))) {
 
@@ -216,18 +217,20 @@ public class GestoreSostituzioni {
         return null;
     }
 
-    // 5. METODO PER TROVARE DOCENTE CON ORE DA RECUPERARE (DA IMPLEMENTARE)
     private Docente trovaDocenteOreDaRecuperare(Lezione lezione, String orario) {
-        // Implementa la logica per docenti con ore da recuperare
-        // Questo dipende dalla struttura del tuo sistema
-        return null;
+      for (Docente docente : gestoreDati.getListaDocenti()) {
+          if(!docente.eInServizio(orario) && isNotAssente(docente) && nonEGiaUsatoAllaStessaOra(docente,orario)){
+            serializzazione.log("Trovato docente con ore da recuperare " + docente.getCognome());
+            return docente;
+          }
+      }
+      return null;
     }
 
-    // 6. METODO PER TROVARE QUALSIASI DOCENTE LIBERO
     private Docente trovaDocenteLibero(Lezione lezione, String orario) {
         for (Docente docente : gestoreDati.getListaDocenti()) {
-            if (isAssente(docente) &&
-                    eGiaUtilizzatoAllaStessaOra(docente, orario) &&
+            if (isNotAssente(docente) &&
+                    nonEGiaUsatoAllaStessaOra(docente, orario) &&
                     !docenteHaLezione(docente, orario)) {
 
                 serializzazione.log("Trovato docente libero: " + docente.getCognome());
@@ -237,24 +240,20 @@ public class GestoreSostituzioni {
         return null;
     }
 
-    // METODO PER SALVARE UNA SINGOLA SOSTITUZIONE
-    private void salvaSostituzione(Docente docenteAssente, Lezione lezione, Docente sostituto, String orario) {
+    private void salvaSostituzione(Docente docenteAssente, Lezione lezione, Docente sostituto, String orario, String tipoSostituzione) {
         String chiave = generaChiave(docenteAssente, orario);
-        sostituzioni.put(chiave, new Sostituzione(docenteAssente, sostituto, lezione, orario));
+        sostituzioni.put(chiave, new Sostituzione(docenteAssente, sostituto, lezione, orario,tipoSostituzione));
 
-        // Marca il docente come utilizzato per questo orario
         String chiaveUtilizzo = sostituto.getCognome() + "_" + orario;
         docentiUtilizzatiPerOra.add(chiaveUtilizzo);
     }
 
-    // VERIFICA SE IL DOCENTE È GIÀ UTILIZZATO ALLA STESSA ORA
-    private boolean eGiaUtilizzatoAllaStessaOra(Docente docente, String orario) {
+    private boolean nonEGiaUsatoAllaStessaOra(Docente docente, String orario) {
         String chiaveUtilizzo = docente.getCognome() + "_" + orario;
         return !docentiUtilizzatiPerOra.contains(chiaveUtilizzo);
     }
 
-    // I METODI RESTANTI RIMANGONO INVARIATI...
-    private boolean isAssente(Docente docente) {
+    private boolean isNotAssente(Docente docente) {
         return !docentiAssenti.contains(docente);
     }
 
@@ -292,12 +291,10 @@ public class GestoreSostituzioni {
         return false;
     }
 
-    // Metodo per generare una chiave univoca per la mappa
     private String generaChiave(Docente docente, String orario) {
         return docente.getCognome() + "_" + orario.replace("h",":");
     }
 
-    // Metodo per ottenere il sostituto di un docente assente a un orario specifico
     public String getSostituto(Docente docenteAssente, String orario) {
         String chiave = generaChiave(docenteAssente, orario);
         Sostituzione sostituzione = sostituzioni.get(chiave);
@@ -306,7 +303,6 @@ public class GestoreSostituzioni {
                 : "-";
     }
 
-    // I METODI PER LA VISUALIZZAZIONE GRAFICA RIMANGONO INVARIATI...
     public JFrame risultato(){
         JFrame risultato = new JFrame("Sostituzioni - " + giornataOdierna);
         risultato.setSize(new Dimension(1000, 600));
@@ -318,19 +314,15 @@ public class GestoreSostituzioni {
         c.weighty = 1.0;
         c.insets = new Insets(1, 1, 1, 1);
 
-        // Font più puliti
-        Font fontIntestazione = new Font("Segoe UI", Font.BOLD, 12);
-        Font fontNormale = new Font("Segoe UI", Font.PLAIN, 10);
-        Font fontPiccolo = new Font("Segoe UI", Font.PLAIN, 9);
+        java.awt.Font fontIntestazione = new java.awt.Font("Segoe UI", Font.BOLD, 12);
+        java.awt.Font fontNormale = new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 10);
+        java.awt.Font fontPiccolo = new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 9);
 
-        // Colori più sobri
         Color coloreIntestazione = new Color(70, 130, 180);
         Color coloreOra = new Color(240, 240, 240);
-        Color coloreSostituzione = new Color(240, 248, 255);
         Color coloreNessunaSostituzione = new Color(250, 250, 250);
         Color coloreBordo = new Color(200, 200, 200);
 
-        // Aggiungi cella vuota in alto a sinistra
         JPanel emptyCell = new JPanel();
         emptyCell.setBackground(coloreIntestazione);
         emptyCell.setBorder(BorderFactory.createLineBorder(coloreBordo));
@@ -338,7 +330,6 @@ public class GestoreSostituzioni {
         c.gridy = 0;
         risultato.add(emptyCell, c);
 
-        // Aggiungi i docenti assenti come intestazioni di colonna
         for (int i = 0; i < docentiAssenti.size(); i++){
             JPanel cella = new JPanel(new BorderLayout());
             JLabel labelDocente = new JLabel(docentiAssenti.get(i).getCognome(), SwingConstants.CENTER);
@@ -352,9 +343,7 @@ public class GestoreSostituzioni {
             risultato.add(cella, c);
         }
 
-        // RIGHE SUCCESSIVE: Orari e sostituti
         for (int i = 0; i < orari.length; i++){
-            // Intestazione della riga (orario)
             JPanel oraCell = new JPanel(new BorderLayout());
             JLabel labelOra = new JLabel(orari[i], SwingConstants.CENTER);
             labelOra.setFont(fontIntestazione);
@@ -365,15 +354,12 @@ public class GestoreSostituzioni {
             c.gridy = i + 1;
             risultato.add(oraCell, c);
 
-            // Celle con sostituti per ogni docente assente
             for (int j = 0; j < docentiAssenti.size(); j++){
                 JPanel cellaSostituto = new JPanel(new BorderLayout());
                 cellaSostituto.setBorder(BorderFactory.createLineBorder(coloreBordo));
 
-                // Usa il nuovo metodo per trovare il sostituto
                 String sostituto = getSostituto(docentiAssenti.get(j), orari[i]);
 
-                // Ottieni la classe dalla sostituzione
                 String chiave = generaChiave(docentiAssenti.get(j), orari[i]);
                 Sostituzione sostituzione = sostituzioni.get(chiave);
                 String classeSostituzione = "-";
@@ -383,26 +369,22 @@ public class GestoreSostituzioni {
                 }
 
                 if (sostituto.equals("-")) {
-                    // Nessuna sostituzione necessaria
                     cellaSostituto.setBackground(coloreNessunaSostituzione);
                     JLabel labelVuoto = new JLabel("Nessuna sostituzione", SwingConstants.CENTER);
                     labelVuoto.setFont(fontNormale);
                     labelVuoto.setForeground(Color.GRAY);
                     cellaSostituto.add(labelVuoto, BorderLayout.CENTER);
                 } else {
-                    // C'è una sostituzione
-                    cellaSostituto.setBackground(coloreSostituzione);
+                    Color coloreCella = getColorePerTipoSostituzione(sostituzione.tipoDiSostituzione);
+                    cellaSostituto.setBackground(coloreCella);
 
-                    // Pannello interno per organizzare meglio le informazioni
                     JPanel panelInfo = new JPanel(new GridLayout(2, 1));
                     panelInfo.setOpaque(false);
 
-                    // Nome del sostituto
                     JLabel labelSostituto = new JLabel(sostituto, SwingConstants.CENTER);
                     labelSostituto.setFont(fontIntestazione);
                     labelSostituto.setForeground(Color.DARK_GRAY);
 
-                    // Classe della sostituzione
                     JLabel labelClasse = new JLabel("Classe: " + classeSostituzione, SwingConstants.CENTER);
                     labelClasse.setFont(fontPiccolo);
                     labelClasse.setForeground(new Color(80, 80, 80));
@@ -419,9 +401,8 @@ public class GestoreSostituzioni {
             }
         }
 
-        // Aggiungi un titolo esplicativo
         JLabel titolo = new JLabel("Piano Sostituzioni - " + giornataOdierna, SwingConstants.CENTER);
-        titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titolo.setFont(new java.awt.Font("Segoe UI", Font.BOLD, 16));
         titolo.setForeground(new Color(50, 50, 70));
         titolo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
@@ -429,16 +410,112 @@ public class GestoreSostituzioni {
         panelTitolo.add(titolo, BorderLayout.CENTER);
         panelTitolo.setBackground(Color.WHITE);
 
+        JPanel legendaPanel = creaLegendaPanel();
+
+        JButton bottoneStampa = creaPulsante("Stampa Risultato", new Color(46, 139, 87));
+        bottoneStampa.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Salva piano sostituzioni");
+            fileChooser.setSelectedFile(new File("sostituzioni_" + giornataOdierna + ".pdf"));
+
+            int userSelection = fileChooser.showSaveDialog(risultato);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                try {
+                    salvaSostituzioniPDF(fileToSave);
+                    JOptionPane.showMessageDialog(risultato,
+                            "Piano sostituzioni salvato con successo!",
+                            "Successo",
+                            JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(risultato,
+                            "Errore durante il salvataggio: " + ex.getMessage(),
+                            "Errore",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        JPanel panelInferiore = new JPanel(new BorderLayout());
+        panelInferiore.add(legendaPanel, BorderLayout.CENTER);
+        panelInferiore.add(bottoneStampa, BorderLayout.LINE_END);
+        panelInferiore.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         JPanel panelContenitore = new JPanel(new BorderLayout());
         panelContenitore.add(panelTitolo, BorderLayout.NORTH);
         panelContenitore.add(risultato.getContentPane(), BorderLayout.CENTER);
+        panelContenitore.add(panelInferiore, BorderLayout.SOUTH);
 
         risultato.setContentPane(panelContenitore);
         risultato.pack();
-        risultato.setMinimumSize(new Dimension(700,500));
-        risultato.setLocationRelativeTo(null); // Centra la finestra
+        risultato.setMinimumSize(new Dimension(700, 600));
+        risultato.setLocationRelativeTo(null);
         risultato.setVisible(true);
         return risultato;
+    }
+
+    private JPanel creaLegendaPanel() {
+        JPanel legendaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
+        legendaPanel.setBackground(Color.WHITE);
+        legendaPanel.setBorder(BorderFactory.createTitledBorder("Legenda tipi di sostituzione"));
+
+        String[] tipiSostituzione = {
+                "Compresenza", "Classe affine", "Materia Affine",
+                "Disposizione", "Ore da recuperare", "Libero a pagamento"
+        };
+
+        for (String tipo : tipiSostituzione) {
+            JPanel itemLegenda = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            itemLegenda.setBackground(Color.WHITE);
+
+            JLabel coloreLabel = new JLabel("   ");
+            coloreLabel.setOpaque(true);
+            coloreLabel.setBackground(getColorePerTipoSostituzione(tipo));
+            coloreLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            coloreLabel.setPreferredSize(new Dimension(20, 15));
+
+            JLabel testoLabel = new JLabel(tipo);
+            testoLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 10));
+
+            itemLegenda.add(coloreLabel);
+            itemLegenda.add(testoLabel);
+            legendaPanel.add(itemLegenda);
+        }
+
+        return legendaPanel;
+    }
+
+    private JButton creaPulsante(String testo, Color coloreSfondo) {
+        JButton bottone = new JButton(testo);
+        bottone.setBackground(coloreSfondo);
+        bottone.setForeground(Color.BLACK);
+        bottone.setFont(new java.awt.Font("Segoe UI", Font.BOLD, 12));
+        bottone.setFocusPainted(false);
+        bottone.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        bottone.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                bottone.setBackground(coloreSfondo.darker());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                bottone.setBackground(coloreSfondo);
+            }
+        });
+
+        return bottone;
+    }
+
+
+    private Color getColorePerTipoSostituzione(String tipoSostituzione) {
+        return switch (tipoSostituzione) {
+            case "Compresenza" -> new Color(173, 216, 230);
+            case "Classe affine" -> new Color(144, 238, 144);
+            case "Materia Affine" -> new Color(255, 218, 185);
+            case "Disposizione" -> new Color(221, 160, 221);
+            case "Ore da recuperare" -> new Color(255, 255, 153);
+            case "Libero a pagamento" -> new Color(240, 128, 128);
+            default -> new Color(250, 250, 250);
+        };
     }
 
     public String stampaSostituzioni() {
@@ -458,5 +535,174 @@ public class GestoreSostituzioni {
         sb.append("===================================================================\n");
 
         return sb.toString();
+    }
+
+    private void salvaSostituzioniPDF(File file) throws Exception {
+        String nomeFile = file.getAbsolutePath();
+        if (!nomeFile.toLowerCase().endsWith(".pdf")) {
+            nomeFile += ".pdf";
+        }
+
+        Document document = new Document(PageSize.A4.rotate()); // Orientamento orizzontale
+        PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(nomeFile));
+
+        document.open();
+
+        // Font
+        Font titoloFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, BaseColor.DARK_GRAY);
+        Font sottotitoloFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.DARK_GRAY);
+        Font normaleFont = new Font(Font.FontFamily.HELVETICA, 10);
+        Font piccoloFont = new Font(Font.FontFamily.HELVETICA, 8);
+
+        // Titolo
+        Paragraph titolo = new Paragraph("PIANO SOSTITUZIONI", titoloFont);
+        titolo.setAlignment(Element.ALIGN_CENTER);
+        titolo.setSpacingAfter(5);
+        document.add(titolo);
+
+        // Sottotitolo con data e giorno
+        Paragraph sottotitolo = new Paragraph(giornataOdierna + " - " +
+                java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                sottotitoloFont);
+        sottotitolo.setAlignment(Element.ALIGN_CENTER);
+        sottotitolo.setSpacingAfter(20);
+        document.add(sottotitolo);
+
+        // Tabella principale
+        int numColonne = docentiAssenti.size() + 1;
+        PdfPTable table = new PdfPTable(numColonne);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(10f);
+        table.setSpacingAfter(20f);
+
+        // Intestazioni colonne
+        table.addCell(creaCellaPDF("ORARIO", sottotitoloFont, true, BaseColor.LIGHT_GRAY));
+
+        for (Docente docente : docentiAssenti) {
+            table.addCell(creaCellaPDF(docente.getCognome(), sottotitoloFont, true, BaseColor.LIGHT_GRAY));
+        }
+
+        // Riga per ogni orario
+        for (String orario : orari) {
+            // Cella orario
+            table.addCell(creaCellaPDF(orario, normaleFont, true, new BaseColor(240, 240, 240)));
+
+            // Celle sostituti per ogni docente assente
+            for (Docente docenteAssente : docentiAssenti) {
+                String sostituto = getSostituto(docenteAssente, orario);
+                String chiave = generaChiave(docenteAssente, orario);
+                Sostituzione sostituzione = sostituzioni.get(chiave);
+
+                if (sostituto.equals("-")) {
+                    table.addCell(creaCellaPDF("Nessuna sostituzione", piccoloFont, false, BaseColor.WHITE));
+                } else {
+                    String classeSostituzione = "-";
+                    String tipoSostituzione = "";
+
+                    if (sostituzione != null && sostituzione.lezione != null) {
+                        classeSostituzione = sostituzione.lezione.getSezione();
+                        tipoSostituzione = sostituzione.tipoDiSostituzione;
+                    }
+
+                    // Crea contenuto cella con più informazioni
+                    String contenutoCella = sostituto + "\nClasse: " + classeSostituzione +
+                            "\nTipo: " + tipoSostituzione;
+
+                    BaseColor coloreSfondo = convertiColorePerPDF(getColorePerTipoSostituzione(tipoSostituzione));
+                    table.addCell(creaCellaPDF(contenutoCella, piccoloFont, false, coloreSfondo));
+                }
+            }
+        }
+
+        document.add(table);
+
+        // Sezione riepilogo
+        document.add(creaRiepilogoSostituzioni(normaleFont, piccoloFont));
+
+        document.close();
+    }
+
+    private PdfPCell creaCellaPDF(String contenuto, Font font, boolean isGrassetto, BaseColor coloreSfondo) {
+        Font fontFinale = font;
+        if (isGrassetto) {
+            fontFinale = new Font(font.getFamily(), font.getSize(), Font.BOLD, font.getColor());
+        }
+
+        PdfPCell cell = new PdfPCell(new Phrase(contenuto, fontFinale));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cell.setPadding(8);
+        cell.setBackgroundColor(coloreSfondo);
+        cell.setBorderColor(BaseColor.GRAY);
+        cell.setBorderWidth(0.5f);
+
+        return cell;
+    }
+
+    private BaseColor convertiColorePerPDF(Color coloreSwing) {
+        return new BaseColor(coloreSwing.getRed(), coloreSwing.getGreen(), coloreSwing.getBlue());
+    }
+
+    private Paragraph creaRiepilogoSostituzioni(Font fontNormale, Font fontPiccolo) {
+        Paragraph riepilogo = new Paragraph();
+        riepilogo.setSpacingBefore(20f);
+
+        // Titolo riepilogo
+        Paragraph titoloRiepilogo = new Paragraph("RIEPILOGO SOSTITUZIONI",
+                new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD));
+        titoloRiepilogo.setSpacingAfter(10f);
+        riepilogo.add(titoloRiepilogo);
+
+        // Conta sostituzioni per tipo
+        Map<String, Integer> conteggioPerTipo = new HashMap<>();
+        int totaleSostituzioni = 0;
+
+        for (Sostituzione sost : sostituzioni.values()) {
+            if (sost.docenteSostituto != null) {
+                String tipo = sost.tipoDiSostituzione;
+                conteggioPerTipo.put(tipo, conteggioPerTipo.getOrDefault(tipo, 0) + 1);
+                totaleSostituzioni++;
+            }
+        }
+
+        // Dettaglio per tipo
+        for (Map.Entry<String, Integer> entry : conteggioPerTipo.entrySet()) {
+            Paragraph dettaglio = new Paragraph(
+                    String.format("• %s: %d sostituzioni", entry.getKey(), entry.getValue()),
+                    fontNormale);
+            dettaglio.setSpacingAfter(2f);
+            riepilogo.add(dettaglio);
+        }
+
+        // Totale
+        Paragraph totale = new Paragraph(
+                String.format("TOTALE SOSTITUZIONI: %d", totaleSostituzioni),
+                new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD));
+        totale.setSpacingAfter(10f);
+        riepilogo.add(totale);
+
+        // Dettaglio per docente assente
+        Paragraph dettaglioDocenti = new Paragraph("DETTAGLIO PER DOCENTE ASSENTE:",
+                new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD));
+        dettaglioDocenti.setSpacingAfter(5f);
+        riepilogo.add(dettaglioDocenti);
+
+        for (Docente docente : docentiAssenti) {
+            int sostituzioniDocente = 0;
+            for (String orario : orari) {
+                String sostituto = getSostituto(docente, orario);
+                if (!sostituto.equals("-")) {
+                    sostituzioniDocente++;
+                }
+            }
+
+            Paragraph infoDocente = new Paragraph(
+                    String.format("• %s: %d ore sostituite", docente.getCognome(), sostituzioniDocente),
+                    fontPiccolo);
+            infoDocente.setSpacingAfter(2f);
+            riepilogo.add(infoDocente);
+        }
+
+        return riepilogo;
     }
 }

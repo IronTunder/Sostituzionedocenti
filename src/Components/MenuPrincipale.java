@@ -145,7 +145,9 @@ public class MenuPrincipale extends JFrame {
 
         comboClassi.removeAllItems();
         classi.forEach(classe -> {
-            comboClassi.addItem(classe.getSezione());
+            if(!classe.getSezione().equalsIgnoreCase("Disposizione")){
+                comboClassi.addItem(classe.getSezione());
+            }
         });
         comboClassi.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         comboClassi.setBackground(Color.WHITE);

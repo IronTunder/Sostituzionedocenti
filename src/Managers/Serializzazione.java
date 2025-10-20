@@ -4,6 +4,8 @@ import Entities.Classe;
 import Entities.Docente;
 import Entities.Lezione;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;

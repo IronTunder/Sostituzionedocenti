@@ -210,11 +210,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
                         options[0]
                 );
                 if (scelta == JOptionPane.YES_OPTION) {
-                    // Salva le ore finali prima di procedere
-                    //salvaOreAssegnate();
-                    //gestoreSostituzioni = new GestoreSostituzioni(gestoreDati, getDocentiAssenti());
-                    //dispose();
-                    // TODO: Avvia calcolo sostituzioni usando anche le ore se necessario
+
                 }
             } else {
                 JOptionPane.showMessageDialog(this,

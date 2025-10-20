@@ -39,7 +39,7 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
 
     public InterfacciaAssenti(GestoreDati gestoreDati, Serializzazione serializzazione) {
         this.setTitle("Sostituzioni");
-        this.setSize(700, 500);
+        this.setSize(700, 900);
         this.setLocationRelativeTo(null);
         this.setLayout(new BorderLayout(0, 20));
         this.getContentPane().setBackground(COLORE_SFONDO);
