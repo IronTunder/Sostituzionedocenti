@@ -94,6 +94,23 @@ public class Docente implements Serializable {
                         lezione.getMateria().equalsIgnoreCase("Disposizione"));
     }
 
+    private ArrayList<String> disposizioni = new ArrayList<>();
+
+    public void aggiungiDisposizione(String giorno, String ora) {
+        disposizioni.add(giorno + "-" + ora);
+    }
+
+    public void rimuoviDisposizione(String giorno, String ora) {
+        disposizioni.remove(giorno + "-" + ora);
+    }
+    public ArrayList<String> getDisposizioni() {
+        return disposizioni;
+    }
+
+    public void pulisciDisposizioni() {
+        disposizioni.clear();
+    }
+
     public ArrayList<Lezione> getListaLezioni() {
         return listaLezioni;
     }

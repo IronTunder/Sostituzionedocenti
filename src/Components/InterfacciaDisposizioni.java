@@ -1,184 +1,309 @@
 package Components;
 
+import Entities.Classe;
 import Entities.Docente;
 import Managers.GestoreDati;
 import Managers.Serializzazione;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class InterfacciaDisposizioni extends JFrame {
+    private final JComboBox<String> comboClassi = new JComboBox<>();
+    private final JComboBox<String> comboDocenti = new JComboBox<>();
+    private JPanel pannelloDisposizioni;
     private final GestoreDati gestoreDati;
     private final Serializzazione serializzazione;
+    private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
+    private final Color COLORE_SFONDO = new Color(248, 250, 252);
+    private final Color COLORE_CARTA = Color.WHITE;
+    private final Color COLORE_TESTO = new Color(60, 60, 70);
+    private final Color COLORE_SELEZIONATO = new Color(144, 238, 144);
 
-    private JComboBox<String> comboDocenti;
-    private JPanel pannelloDisposizioni;
-    private Map<String, JCheckBox> checkboxesDisposizioni;
+    private Map<String, JButton> celleDisposizioni;
+    private Docente docenteSelezionato;
 
     public InterfacciaDisposizioni(GestoreDati gestoreDati, Serializzazione serializzazione) {
         this.gestoreDati = gestoreDati;
         this.serializzazione = serializzazione;
+        this.celleDisposizioni = new HashMap<>();
 
-        inizializzaUI();
-        caricaDocenti();
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.put("Panel.background", COLORE_SFONDO);
+            UIManager.put("ComboBox.background", Color.WHITE);
+            UIManager.put("Button.background", COLORE_PRIMARIO);
+            UIManager.put("Button.foreground", Color.WHITE);
+        } catch (Exception ignored) {
+        }
+
+        inizializzaUI(gestoreDati.getListaClassi(), gestoreDati.getListaDocenti());
     }
 
-    private void inizializzaUI() {
-        setTitle("Gestione Disposizioni Docenti");
-        setSize(800, 600);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
+    private void inizializzaUI(ArrayList<Classe> classi, ArrayList<Docente> docenti) {
+        this.setTitle("Gestione Disposizioni");
+        this.setSize(1200, 700);
+        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        this.setLayout(new BorderLayout(20, 20));
+        this.setLocationRelativeTo(null);
+        this.getContentPane().setBackground(COLORE_SFONDO);
+        setResizable(true);
 
-        // Header
-        JLabel titolo = new JLabel("Gestione Ore di Disposizione", SwingConstants.CENTER);
-        titolo.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        titolo.setBorder(new EmptyBorder(10, 0, 10, 0));
-        add(titolo, BorderLayout.NORTH);
+        aggiungiTitolo();
 
-        // Pannello selezione docente
-        add(creaPannelloSelezione(), BorderLayout.NORTH);
+        JPanel pannelloCentro = new JPanel(new BorderLayout(20, 0));
+        pannelloCentro.setBackground(COLORE_SFONDO);
+        pannelloCentro.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
+        this.add(pannelloCentro, BorderLayout.CENTER);
 
-        // Griglia disposizioni
-        pannelloDisposizioni = new JPanel();
-        pannelloDisposizioni.setLayout(new BoxLayout(pannelloDisposizioni, BoxLayout.Y_AXIS));
-        add(new JScrollPane(pannelloDisposizioni), BorderLayout.CENTER);
+        JPanel pannelloSinistra = creaPannelloSelezione(classi, docenti);
+        pannelloCentro.add(pannelloSinistra, BorderLayout.CENTER);
 
-        add(creaPannelloPulsanti(), BorderLayout.SOUTH);
+        JPanel pannelloDestra = creaPannelloBottoni();
+        pannelloCentro.add(pannelloDestra, BorderLayout.LINE_END);
+
+        this.setVisible(true);
     }
 
-    private JPanel creaPannelloSelezione() {
-        JPanel selezione = new JPanel(new FlowLayout());
-        selezione.setBorder(new EmptyBorder(10, 10, 10, 10));
+    private void aggiungiTitolo() {
+        JPanel pannelloTitolo = new JPanel(new BorderLayout());
+        pannelloTitolo.setBackground(COLORE_SFONDO);
+        pannelloTitolo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
+        JLabel titolo = new JLabel("GESTIONE DISPOSIZIONI", SwingConstants.CENTER);
+        titolo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titolo.setForeground(COLORE_TESTO);
+
+        JLabel sottotitolo = new JLabel("Clicca sulle ore per impostare le disposizioni", SwingConstants.CENTER);
+        sottotitolo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        sottotitolo.setForeground(COLORE_PRIMARIO);
+
+        pannelloTitolo.add(titolo, BorderLayout.CENTER);
+        pannelloTitolo.add(sottotitolo, BorderLayout.SOUTH);
+
+        this.add(pannelloTitolo, BorderLayout.NORTH);
+    }
+
+    private JPanel creaPannelloSelezione(ArrayList<Classe> classi, ArrayList<Docente> docenti) {
+        JPanel pannelloSinistra = new JPanel(new BorderLayout(15, 15));
+        pannelloSinistra.setBackground(COLORE_SFONDO);
+
+        JPanel pannelloSelezione = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        pannelloSelezione.setBackground(COLORE_SFONDO);
+        pannelloSelezione.setBorder(BorderFactory.createTitledBorder("Selezione"));
 
         JLabel labelDocente = new JLabel("Docente:");
-        comboDocenti = new JComboBox<>();
-        comboDocenti.setPreferredSize(new Dimension(200, 30));
-        comboDocenti.addActionListener(e -> aggiornaDisposizioniDocente());
+        labelDocente.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        labelDocente.setForeground(COLORE_TESTO);
 
-        JButton btnSelezionaTutti = new JButton("Seleziona Tutti");
-        btnSelezionaTutti.addActionListener(e -> selezionaTutti());
+        comboDocenti.removeAllItems();
+        docenti.forEach(d -> comboDocenti.addItem(d.getCognome()));
 
-        JButton btnDeselezionaTutti = new JButton("Deseleziona Tutti");
-        btnDeselezionaTutti.addActionListener(e -> deselezionaTutti());
+        pannelloSelezione.add(labelDocente);
+        pannelloSelezione.add(comboDocenti);
 
-        selezione.add(labelDocente);
-        selezione.add(comboDocenti);
-        selezione.add(btnSelezionaTutti);
-        selezione.add(btnDeselezionaTutti);
+        // Pulsanti azioni rapide - CORREGGI QUESTI
+        JButton btnSelezionaTutto = new JButton("Seleziona Tutto");
+        JButton btnDeselezionaTutto = new JButton("Deseleziona Tutto");
 
-        return selezione;
+        // AGGIUNGI QUESTE RIGHE PER I DUE PULSANTI:
+        btnSelezionaTutto.setBackground(new Color(46, 139, 87));
+        btnSelezionaTutto.setForeground(Color.BLACK);
+        btnSelezionaTutto.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        btnDeselezionaTutto.setBackground(new Color(220, 80, 80));
+        btnDeselezionaTutto.setForeground(Color.BLACK);
+        btnDeselezionaTutto.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        btnSelezionaTutto.addActionListener(e -> selezionaTutteDisposizioni());
+        btnDeselezionaTutto.addActionListener(e -> deselezionaTutteDisposizioni());
+
+        pannelloSelezione.add(btnSelezionaTutto);
+        pannelloSelezione.add(btnDeselezionaTutto);
+
+        pannelloDisposizioni = new JPanel(new BorderLayout());
+        pannelloDisposizioni.setBackground(COLORE_CARTA);
+        pannelloDisposizioni.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 230)),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+
+        pannelloSinistra.add(pannelloSelezione, BorderLayout.NORTH);
+        pannelloSinistra.add(pannelloDisposizioni, BorderLayout.CENTER);
+
+        comboDocenti.addActionListener(a -> aggiornaDisposizioniDocente());
+
+        return pannelloSinistra;
     }
 
-    private JPanel creaPannelloPulsanti() {
-        JPanel pulsanti = new JPanel(new FlowLayout());
-        pulsanti.setBorder(new EmptyBorder(10, 10, 10, 10));
+    private JPanel creaPannelloBottoni() {
+        JPanel pannelloDestra = new JPanel(new GridLayout(4, 1, 15, 15));
+        pannelloDestra.setPreferredSize(new Dimension(200, 0));
+        pannelloDestra.setBackground(COLORE_SFONDO);
+        pannelloDestra.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-        JButton btnSalva = new JButton("Salva Disposizioni");
-        btnSalva.addActionListener(e -> salvaDisposizioni());
+        JButton bApplica = new JButton("Salva Disposizioni");
+        JButton bReset = new JButton("Reset");
+        JButton bVisualizza = new JButton("Visualizza");
+        JButton bIndietro = new JButton("← Indietro");
 
-        JButton btnChiudi = new JButton("Chiudi");
-        btnChiudi.addActionListener(e -> dispose());
+        personalizzaBottone(bApplica, new Color(46, 139, 87));
+        personalizzaBottone(bReset, new Color(255, 159, 67));
+        personalizzaBottone(bVisualizza, new Color(100, 149, 237));
+        personalizzaBottone(bIndietro, new Color(220, 80, 80));
 
-        pulsanti.add(btnSalva);
-        pulsanti.add(btnChiudi);
+        bApplica.addActionListener(e -> salvaDisposizioni());
+        bReset.addActionListener(e -> resetDisposizioni());
+        bVisualizza.addActionListener(e -> visualizzaDisposizioni());
+        bIndietro.addActionListener(e -> dispose());
 
-        return pulsanti;
+        pannelloDestra.add(bApplica);
+        pannelloDestra.add(bReset);
+        pannelloDestra.add(bVisualizza);
+        pannelloDestra.add(bIndietro);
+
+        return pannelloDestra;
     }
 
-    private void caricaDocenti() {
-        for (Docente docente : gestoreDati.getListaDocenti()) {
-            comboDocenti.addItem(docente.getCognome());
-        }
-        if (comboDocenti.getItemCount() > 0) {
-            aggiornaDisposizioniDocente();
-        }
+    private void personalizzaBottone(JButton bottone, Color colore) {
+        bottone.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        bottone.setBackground(colore);
+        bottone.setForeground(Color.BLACK);
+        bottone.setFocusPainted(false);
+        bottone.setBorder(new LineBorder(colore.darker(), 1));
+        bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
     private void aggiornaDisposizioniDocente() {
         pannelloDisposizioni.removeAll();
-        checkboxesDisposizioni = new HashMap<>();
+        celleDisposizioni.clear();
 
         String cognomeDocente = (String) comboDocenti.getSelectedItem();
         if (cognomeDocente == null) return;
 
-        Docente docente = gestoreDati.getDocenteByCognome(cognomeDocente);
-        if (docente == null) return;
+        docenteSelezionato = gestoreDati.getDocenteByCognome(cognomeDocente);
+        if (docenteSelezionato == null) return;
 
-        // Intestazione
-        JLabel labelInfo = new JLabel("Disposizioni per: " + cognomeDocente);
-        labelInfo.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        labelInfo.setBorder(new EmptyBorder(10, 10, 10, 10));
-        pannelloDisposizioni.add(labelInfo);
-
-        // Griglia giorni e ore
-        String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
-        String[] ore = {"8:00", "9:00", "10:00", "11:00", "12:00", "13:00", "14:00"};
-
-        for (String giorno : giorni) {
-            JPanel pannelloGiorno = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            pannelloGiorno.setBorder(new CompoundBorder(
-                    new TitledBorder(giorno),
-                    new EmptyBorder(5, 5, 5, 5)
-            ));
-
-            for (String ora : ore) {
-                String key = giorno.toLowerCase() + "-" + ora;
-                JCheckBox checkBox = new JCheckBox(ora);
-
-                // Verifica se già selezionato
-                if (docente.haDisposizione(giorno.toLowerCase(), ora)) {
-                    checkBox.setSelected(true);
-                }
-
-                checkboxesDisposizioni.put(key, checkBox);
-                pannelloGiorno.add(checkBox);
-            }
-
-            pannelloDisposizioni.add(pannelloGiorno);
-        }
+        JPanel griglia = creaGrigliaDisposizioni();
+        pannelloDisposizioni.add(new JScrollPane(griglia), BorderLayout.CENTER);
 
         pannelloDisposizioni.revalidate();
         pannelloDisposizioni.repaint();
     }
 
-    private void selezionaTutti() {
-        for (JCheckBox checkBox : checkboxesDisposizioni.values()) {
-            checkBox.setSelected(true);
+    private JPanel creaGrigliaDisposizioni() {
+        // GridLayout(righe, colonne) - 8 righe (7 ore + header), 7 colonne (6 giorni + header)
+        JPanel griglia = new JPanel(new GridLayout(8, 7, 2, 2));
+        griglia.setBackground(COLORE_CARTA);
+        griglia.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
+        String[] ore = {"8:00", "9:00", "10:00", "11:00", "12:00", "13:00", "14:00"};
+
+        griglia.add(creaCellaHeader("Ore/Giorni"));
+
+        for (String giorno : giorni) {
+            griglia.add(creaCellaHeader(giorno));
+        }
+
+        for (int oraIdx = 0; oraIdx < ore.length; oraIdx++) {
+            griglia.add(creaCellaHeader(ore[oraIdx]));
+
+            for (int giornoIdx = 0; giornoIdx < giorni.length; giornoIdx++) {
+                String giorno = giorni[giornoIdx].toLowerCase();
+                String ora = ore[oraIdx];
+                String key = giorno + "-" + ora;
+
+                JButton cella = creaCellaDisposizione(giorno, ora);
+                celleDisposizioni.put(key, cella);
+                griglia.add(cella);
+            }
+        }
+
+        return griglia;
+    }
+
+    private JLabel creaCellaHeader(String testo) {
+        JLabel label = new JLabel(testo, SwingConstants.CENTER);
+        label.setOpaque(true);
+        label.setBackground(COLORE_PRIMARIO);
+        label.setForeground(Color.WHITE);
+        label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        label.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        return label;
+    }
+
+    private JButton creaCellaDisposizione(String giorno, String ora) {
+        JButton cella = new JButton();
+        cella.setBackground(Color.WHITE);
+        cella.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        cella.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+
+        String key = giorno + "-" + ora;
+        if (docenteSelezionato.haDisposizione(giorno, ora)) {
+            cella.setBackground(COLORE_SELEZIONATO);
+            cella.setText("✓");
+        }
+
+        cella.addActionListener(e -> attivaDisattivaDisposizione(cella, giorno, ora));
+
+        return cella;
+    }
+
+    private void attivaDisattivaDisposizione(JButton cella, String giorno, String ora) {
+        if (docenteSelezionato.haDisposizione(giorno, ora)) {
+            cella.setBackground(Color.WHITE);
+            docenteSelezionato.rimuoviDisposizione(giorno, ora);
+        } else {
+            cella.setBackground(COLORE_SELEZIONATO);
+            docenteSelezionato.aggiungiDisposizione(giorno, ora);
         }
     }
 
-    private void deselezionaTutti() {
-        for (JCheckBox checkBox : checkboxesDisposizioni.values()) {
-            checkBox.setSelected(false);
+    private void selezionaTutteDisposizioni() {
+        if (docenteSelezionato == null) return;
+
+        for (Map.Entry<String, JButton> entry : celleDisposizioni.entrySet()) {
+            String[] parts = entry.getKey().split("-");
+            if (parts.length == 2) {
+                JButton cella = entry.getValue();
+                if (!cella.getBackground().equals(COLORE_SELEZIONATO)) {
+                    cella.setBackground(COLORE_SELEZIONATO);
+                    cella.setText("✓");
+                    docenteSelezionato.aggiungiDisposizione(parts[0], parts[1]);
+                }
+            }
+        }
+    }
+
+    private void deselezionaTutteDisposizioni() {
+        if (docenteSelezionato == null) return;
+
+        for (Map.Entry<String, JButton> entry : celleDisposizioni.entrySet()) {
+            String[] parts = entry.getKey().split("-");
+            if (parts.length == 2) {
+                JButton cella = entry.getValue();
+                cella.setBackground(Color.WHITE);
+                cella.setText("");
+                docenteSelezionato.rimuoviDisposizione(parts[0], parts[1]);
+            }
         }
     }
 
     private void salvaDisposizioni() {
-        String cognomeDocente = (String) comboDocenti.getSelectedItem();
-        if (cognomeDocente == null) return;
-
-        Docente docente = gestoreDati.getDocenteByCognome(cognomeDocente);
-        if (docente == null) return;
-
-        // docente.getDisposizioni().clear();
-
-        for (Map.Entry<String, JCheckBox> entry : checkboxesDisposizioni.entrySet()) {
-            if (entry.getValue().isSelected()) {
-                String[] parts = entry.getKey().split("-");
-                if (parts.length == 2) {
-                    //docente.aggiungiDisposizione(parts[0], parts[1]);
-                }
-            }
+        if (docenteSelezionato == null) {
+            JOptionPane.showMessageDialog(this, "Seleziona un docente prima di salvare!");
+            return;
         }
 
         try {
             serializzazione.salvaDati();
             JOptionPane.showMessageDialog(this,
-                    "Disposizioni salvate per " + cognomeDocente + "!",
+                    "Disposizioni salvate per " + docenteSelezionato.getCognome() + "!",
                     "Salvataggio Completato",
                     JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {
@@ -187,5 +312,47 @@ public class InterfacciaDisposizioni extends JFrame {
                     "Errore",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void resetDisposizioni() {
+        if (docenteSelezionato == null) return;
+
+        int conferma = JOptionPane.showConfirmDialog(this,
+                "Sei sicuro di voler resettare tutte le disposizioni per " +
+                        docenteSelezionato.getCognome() + "?",
+                "Conferma Reset",
+                JOptionPane.YES_NO_OPTION);
+
+        if (conferma == JOptionPane.YES_OPTION) {
+            docenteSelezionato.pulisciDisposizioni();
+            aggiornaDisposizioniDocente(); // Ricarica la griglia
+        }
+    }
+
+    private void visualizzaDisposizioni() {
+        if (docenteSelezionato == null) {
+            JOptionPane.showMessageDialog(this, "Seleziona un docente!");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Disposizioni per ").append(docenteSelezionato.getCognome()).append(":\n\n");
+
+        ArrayList<String> disposizioni = docenteSelezionato.getDisposizioni();
+        if (disposizioni.isEmpty()) {
+            sb.append("Nessuna disposizione impostata.");
+        } else {
+            for (String disp : disposizioni) {
+                String[] parts = disp.split("-");
+                if (parts.length == 2) {
+                    String giorno = parts[0].substring(0, 1).toUpperCase() + parts[0].substring(1);
+                    sb.append("• ").append(giorno).append(" alle ").append(parts[1]).append("\n");
+                }
+            }
+        }
+
+        JOptionPane.showMessageDialog(this, sb.toString(),
+                "Disposizioni - " + docenteSelezionato.getCognome(),
+                JOptionPane.INFORMATION_MESSAGE);
     }
 }
