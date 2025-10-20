@@ -27,7 +27,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
 
     // lista dei campi ore per riga (uno per docente filtrato)
     private final ArrayList<JTextField> oreFields = new ArrayList<>();
-
+    
     // Mappa per memorizzare le ore assegnate a ciascun docente (per ripristino dopo filtro)
     private final Map<Docente, Integer> oreAssegnate = new HashMap<>();
 
@@ -210,11 +210,12 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
                         options[0]
                 );
                 if (scelta == JOptionPane.YES_OPTION) {
-                    // Salva le ore finali prima di procedere
-                    //salvaOreAssegnate();
-                    //gestoreSostituzioni = new GestoreSostituzioni(gestoreDati, getDocentiAssenti());
-                    //dispose();
-                    // TODO: Avvia calcolo sostituzioni usando anche le ore se necessario
+
+                    for (Docente d :getDocentiModificati())
+                    {
+                        d.aggiungiOraDaRecuperare(oreAssegnate.get(d));
+                    }
+
                 }
             } else {
                 JOptionPane.showMessageDialog(this,
@@ -270,7 +271,6 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
     private void aggiornaLista() {
         panelCentro.removeAll();
         oreFields.clear(); // reset lista campi ore
-
         if (docentiFiltrati.isEmpty()) {
             JLabel nessunRisultato = new JLabel("Nessun docente trovato", SwingConstants.CENTER);
             nessunRisultato.setFont(new Font("Segoe UI", Font.ITALIC, 14));
@@ -306,6 +306,8 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
                 int orePrecedenti = oreAssegnate.getOrDefault(doc, 0);
 
                 JTextField oreField = new JTextField(String.valueOf(orePrecedenti));
+                oreField.setEditable(false);
+                oreField.setEnabled(false);
                 oreField.setPreferredSize(new Dimension(60, 28));
                 oreField.setHorizontalAlignment(SwingConstants.CENTER);
                 oreField.setActionCommand("OREFIELD_" + i);
@@ -415,7 +417,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
     /**
      * Restituisce la lista dei docenti che hanno un numero di ore > 0
      */
-    private ArrayList<Docente> getDocentiAssenti(){
+    private ArrayList<Docente> getDocentiModificati(){
         ArrayList<Docente> docentiAssenti = new ArrayList<>();
         for (int i = 0; i < oreFields.size() && i < docentiFiltrati.size(); i++) {
             int ore = parseOre(oreFields.get(i).getText());
@@ -426,13 +428,6 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         return docentiAssenti;
     }
 
-    /**
-     * Restituisce una mappa Docente -> ore (valore intero, >= 0).
-     * Utile se vuoi passare anche il numero di ore al GestoreSostituzioni.
-     */
-    public Map<Docente, Integer> getOrePerDocente() {
-        return new HashMap<>(oreAssegnate);
-    }
 
     private void aggiornaPannelloConteggio() {
         conteggioLabel.setText("Docenti con ore > 0: " + contaSelezionati());
