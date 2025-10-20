@@ -120,13 +120,13 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         pannelloBottoni.add(bottoneClassi);
         pannelloBottoni.add(bottoneIndietro);
 
-        bottoneClassi.addActionListener(e -> {
 
-            new InterfacciaAggiornamentoClassiDocenti(gestoreDati, serializzazione);
-        });
 
         bottoneDocenti.addActionListener(e -> mostraMessaggio("Orario dei docenti aggiornato"));
         bottoneDisposizioni.addActionListener(e -> mostraMessaggio("Disposizioni aggiornate"));
+        bottoneClassi.addActionListener(e -> {
+            new InterfacciaAggiornamentoClassiDocenti(gestoreDati, serializzazione);
+        });
         bottoneIndietro.addActionListener(e -> {
             new MenuPrincipale(gestoreDati,serializzazione);
             dispose();
