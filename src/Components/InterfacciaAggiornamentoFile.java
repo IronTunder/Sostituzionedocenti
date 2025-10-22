@@ -110,21 +110,21 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         pannelloBottoni.setBackground(coloreSfondo);
         pannelloBottoni.setBorder(new EmptyBorder(20, 200, 20, 200));
 
-        JButton bottoneDocenti = creaPulsante("Aggiorna Orario Docenti", coloreBlu);
         JButton bottoneDisposizioni = creaPulsante("Aggiorna Disposizioni", new Color(100, 149, 237));
-        JButton bottoneClassi = creaPulsante("Aggiorna Orario Classi", new Color(72, 187, 120));
+        JButton bottoneClassiEDocenti = creaPulsante("Aggiorna Orario Classi e Docenti", new Color(72, 187, 120));
         JButton bottoneIndietro = creaPulsante("Indietro", coloreRosso);
 
-        pannelloBottoni.add(bottoneDocenti);
         pannelloBottoni.add(bottoneDisposizioni);
-        pannelloBottoni.add(bottoneClassi);
+        pannelloBottoni.add(bottoneClassiEDocenti);
         pannelloBottoni.add(bottoneIndietro);
 
-        bottoneDocenti.addActionListener(e -> mostraMessaggio("Orario dei docenti aggiornato"));
-        bottoneDisposizioni.addActionListener(e ->
-                new InterfacciaDisposizioni(gestoreDati,serializzazione));
-        bottoneClassi.addActionListener(e -> {
+        bottoneDisposizioni.addActionListener(e -> {
+            new InterfacciaDisposizioni(gestoreDati,serializzazione);
+            dispose();
+        });
+        bottoneClassiEDocenti.addActionListener(e -> {
             new InterfacciaAggiornamentoClassiDocenti(gestoreDati, serializzazione);
+            dispose();
         });
         bottoneIndietro.addActionListener(e -> {
             new MenuPrincipale(gestoreDati,serializzazione);

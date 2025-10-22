@@ -4,12 +4,19 @@ import Entities.Classe;
 import Entities.Docente;
 import Entities.Lezione;
 import Managers.ColoriMaterie;
+import Managers.GestoreDati;
+import Managers.Serializzazione;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 public class TabellaOraria extends JPanel {
+
+    private JPanel pannelloOrario;
+    private Runnable callbackAggiornamento;
 
     public TabellaOraria(Classe classe) {
         setLayout(new BorderLayout());
@@ -20,9 +27,68 @@ public class TabellaOraria extends JPanel {
         titolo.setForeground(new Color(50, 50, 70));
         this.add(titolo, BorderLayout.NORTH);
 
-        JPanel pannelloOrario = new JPanel();
+        pannelloOrario = new JPanel();
         pannelloOrario.setLayout(new GridBagLayout());
         pannelloOrario.setBackground(Color.WHITE);
+
+        ricreaTabellaClasse(classe);
+
+        JScrollPane scrollPane = new JScrollPane(pannelloOrario);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        this.add(scrollPane, BorderLayout.CENTER);
+    }
+
+    public TabellaOraria(Docente docente) {
+        setLayout(new BorderLayout());
+        ArrayList<Lezione> lezioni = docente.getListaLezioni();
+        JLabel titolo = new JLabel("Orario del docente: " + docente.getCognome(), SwingConstants.CENTER);
+        titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titolo.setForeground(new Color(50, 50, 70));
+        this.add(titolo, BorderLayout.NORTH);
+
+        pannelloOrario = new JPanel();
+        pannelloOrario.setLayout(new GridBagLayout());
+        pannelloOrario.setBackground(Color.WHITE);
+
+        ricreaTabellaDocente(docente);
+
+        JScrollPane scrollPane = new JScrollPane(pannelloOrario);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        this.add(scrollPane, BorderLayout.CENTER);
+    }
+
+    public TabellaOraria(Docente docente, String materiaFilter, GestoreDati gestoreDati, Serializzazione serializzazione) {
+        this(docente, materiaFilter, gestoreDati, serializzazione, null);
+    }
+
+    public TabellaOraria(Docente docente, String materiaFilter, GestoreDati gestoreDati, Serializzazione serializzazione, Runnable callbackAggiornamento) {
+        setLayout(new BorderLayout());
+        this.callbackAggiornamento = callbackAggiornamento;
+
+        ArrayList<Lezione> lezioni = docente.getListaLezioni();
+        JLabel titolo = new JLabel("Orario del docente: " + docente.getCognome(), SwingConstants.CENTER);
+        titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titolo.setForeground(new Color(50, 50, 70));
+        this.add(titolo, BorderLayout.NORTH);
+
+        pannelloOrario = new JPanel();
+        pannelloOrario.setLayout(new GridBagLayout());
+        pannelloOrario.setBackground(Color.WHITE);
+
+        ricreaTabellaDocenteFiltrata(docente, materiaFilter, gestoreDati, serializzazione);
+
+        JScrollPane scrollPane = new JScrollPane(pannelloOrario);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        this.add(scrollPane, BorderLayout.CENTER);
+    }
+
+    private void ricreaTabellaClasse(Classe classe) {
+        pannelloOrario.removeAll();
+
+        ArrayList<Lezione> lezioni = classe.getLezioni();
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
         c.weightx = 1.0;
@@ -83,23 +149,14 @@ public class TabellaOraria extends JPanel {
             }
         }
 
-        JScrollPane scrollPane = new JScrollPane(pannelloOrario);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        this.add(scrollPane, BorderLayout.CENTER);
+        pannelloOrario.revalidate();
+        pannelloOrario.repaint();
     }
 
-    public TabellaOraria(Docente docente) {
-        setLayout(new BorderLayout());
-        ArrayList<Lezione> lezioni = docente.getListaLezioni();
-        JLabel titolo = new JLabel("Orario del docente: " + docente.getCognome(), SwingConstants.CENTER);
-        titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        titolo.setForeground(new Color(50, 50, 70));
-        this.add(titolo, BorderLayout.NORTH);
+    private void ricreaTabellaDocente(Docente docente) {
+        pannelloOrario.removeAll();
 
-        JPanel pannelloOrario = new JPanel();
-        pannelloOrario.setLayout(new GridBagLayout());
-        pannelloOrario.setBackground(Color.WHITE);
+        ArrayList<Lezione> lezioni = docente.getListaLezioni();
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
         c.weightx = 1.0;
@@ -107,9 +164,8 @@ public class TabellaOraria extends JPanel {
 
         String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
         String[] orari = {"08:00","09:00","10:00","11:10","12:05","13:00"};
-        int maxOrePerGiorno = orari.length;
+        int maxOrePerGiorno = calcolaMaxOrePerGiorno(lezioni, giorni);
 
-        // Intestazioni giorni
         for (int i = 0; i < giorni.length; i++) {
             JLabel labelGiorno = new JLabel(giorni[i], SwingConstants.CENTER);
             labelGiorno.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -133,29 +189,24 @@ public class TabellaOraria extends JPanel {
             int riga = 1;
             int lezioneIndex = 0;
 
-            // Ordina le lezioni per orario di inizio
             lezioniGiorno.sort((l1, l2) -> l1.getOraInizio().compareTo(l2.getOraInizio()));
 
-            for (int oraIndex = 0; oraIndex < orari.length; oraIndex++) {
+            for (int oraIndex = 0; oraIndex < maxOrePerGiorno; oraIndex++) {
                 String orarioCorrente = orari[oraIndex];
                 JPanel panelDaAggiungere;
 
-                // Controlla se c'è una lezione a questo orario
                 if (lezioneIndex < lezioniGiorno.size() &&
                         lezioniGiorno.get(lezioneIndex).getOraInizio().replace("h", ":").equals(orarioCorrente)) {
 
-                    // C'è una lezione
                     Lezione lezione = lezioniGiorno.get(lezioneIndex);
                     panelDaAggiungere = creaPanelLezione(lezione, true);
                     c.gridheight = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
-                    lezioneIndex++; // Passa alla prossima lezione
+                    lezioneIndex++;
 
-                    // Salta le ore successive se la lezione dura più di un'ora
                     if (c.gridheight > 1) {
                         oraIndex += (c.gridheight - 1);
                     }
                 } else {
-                    // Non c'è lezione - ora libera
                     panelDaAggiungere = creaPanelLibero();
                     c.gridheight = 1;
                 }
@@ -166,16 +217,146 @@ public class TabellaOraria extends JPanel {
                 pannelloOrario.add(panelDaAggiungere, c);
                 riga += c.gridheight;
             }
+        }
 
+        for (Component comp : pannelloOrario.getComponents()) {
+            if (comp instanceof JPanel) {
+                comp.setPreferredSize(new Dimension(120, 60));
+            }
+        }
 
-            // Riempimento celle vuote rimanenti (non dovrebbe essere necessario con orari fissi)
-            while (riga <= maxOrePerGiorno + 1) {
-                JPanel panelVuoto = creaPanelLibero();
+        pannelloOrario.revalidate();
+        pannelloOrario.repaint();
+    }
+
+    private void ricreaTabellaDocenteFiltrata(Docente docente, String materiaFilter, GestoreDati gestoreDati, Serializzazione serializzazione) {
+        pannelloOrario.removeAll();
+
+        ArrayList<Lezione> lezioni = docente.getListaLezioni();
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1.0;
+        c.weighty = 1.0;
+
+        String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
+        String[] orari = {"08:00","09:00","10:00","11:10","12:05","13:00"};
+        int maxOrePerGiorno = calcolaMaxOrePerGiorno(lezioni, giorni);
+
+        for (int i = 0; i < giorni.length; i++) {
+            JLabel labelGiorno = new JLabel(giorni[i], SwingConstants.CENTER);
+            labelGiorno.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            labelGiorno.setOpaque(true);
+            labelGiorno.setBackground(new Color(70, 130, 180));
+            labelGiorno.setForeground(Color.WHITE);
+            labelGiorno.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.BLACK),
+                    BorderFactory.createEmptyBorder(8, 5, 8, 5)
+            ));
+            c.gridx = i;
+            c.gridy = 0;
+            c.gridheight = 1;
+            pannelloOrario.add(labelGiorno, c);
+        }
+
+        for (int giornoIndex = 0; giornoIndex < giorni.length; giornoIndex++) {
+            String giorno = giorni[giornoIndex].toLowerCase();
+            ArrayList<Lezione> lezioniGiorno = getLezioniPerGiorno(lezioni, giorno);
+
+            int riga = 1;
+            int lezioneIndex = 0;
+
+            lezioniGiorno.sort((l1, l2) -> l1.getOraInizio().compareTo(l2.getOraInizio()));
+
+            for (int oraIndex = 0; oraIndex < maxOrePerGiorno; oraIndex++) {
+                String orarioCorrente = orari[oraIndex];
+                JPanel panelDaAggiungere;
+                if (lezioneIndex < lezioniGiorno.size() && lezioniGiorno.get(lezioneIndex).getOraInizio().replace("h", ":").equals(orarioCorrente)) {
+                    Lezione lezione = lezioniGiorno.get(lezioneIndex);
+                    if(lezione.getMateria().equalsIgnoreCase(materiaFilter)){
+                        panelDaAggiungere = creaPanelLezione(lezione, true);
+                        panelDaAggiungere.addMouseListener(new MouseAdapter() {
+                            @Override
+                            public void mouseClicked(MouseEvent e) {
+                                Object[] options = {"<html><font color=#000000>Conferma</font></html>", "<html><font color=#FF0000>Annulla</font></html>"};
+                                int scelta = JOptionPane.showOptionDialog(
+                                        null,
+                                        "Vuoi eliminare la disposizione selezionata per il docente " + docente.getCognome() + "?" ,
+                                        "Conferma",
+                                        JOptionPane.YES_NO_OPTION,
+                                        JOptionPane.QUESTION_MESSAGE,
+                                        null,
+                                        options,
+                                        options[0]
+                                );
+                                if(scelta == JOptionPane.YES_OPTION){
+                                    docente.getListaLezioni().remove(lezione);
+                                    lezione.rimuoviDocente(docente.getCognome());
+                                    serializzazione.log("Disposizione rimossa: Docente " + docente.getCognome() + ", Giorno " + giorno + ", Ora " + orarioCorrente);
+                                    serializzazione.log("Docente " + docente.getCognome() + " rimosso dalla lezione numero " + lezione.getNumero());
+                                    serializzazione.salvaDati();
+                                    aggiornaTabella();
+                                }
+                            }
+                        });
+                        panelDaAggiungere.addMouseListener(new MouseAdapter() {
+                            @Override
+                            public void mouseEntered(MouseEvent e) {
+                                panelDaAggiungere.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                            }
+                        });
+                        c.gridheight = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+                        lezioneIndex++;
+                        if (c.gridheight > 1) {
+                            oraIndex += (c.gridheight - 1);
+                        }
+                    }
+                    else {
+                        panelDaAggiungere = creaPanelOccupato();
+                        c.gridheight = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+                        lezioneIndex++;
+                        if (c.gridheight > 1) {
+                            oraIndex += (c.gridheight - 1);
+                        }
+                    }
+                } else {
+                    panelDaAggiungere = creaPanelLibero();
+                    panelDaAggiungere.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            Object[] options = {"<html><font color=#000000>Conferma</font></html>", "<html><font color=#FF0000>Annulla</font></html>"};
+                            int scelta = JOptionPane.showOptionDialog(
+                                    null,
+                                    "Vuoi aggiungere la una disposizione nell'orario selezionato per il docente " + docente.getCognome() + "?" ,
+                                    "Conferma",
+                                    JOptionPane.YES_NO_OPTION,
+                                    JOptionPane.QUESTION_MESSAGE,
+                                    null,
+                                    options,
+                                    options[0]
+                            );
+                            if(scelta == JOptionPane.YES_OPTION){
+                                int nuovoNumero = gestoreDati.getListaLezioni().isEmpty() ? 1 : gestoreDati.getListaLezioni().getLast().getNumero() + 1;
+                                docente.getListaLezioni().add(new Lezione(nuovoNumero, "1h", materiaFilter, docente.getCognome(), "Disposizione", "", giorno, orarioCorrente.replace(":", "h")));
+                                serializzazione.log("Disposizione aggiunta: Docente " + docente.getCognome() + ", Giorno " + giorno + ", Ora " + orarioCorrente);
+                                serializzazione.salvaDati();
+                                aggiornaTabella();
+                            }
+                        }
+                    });
+                    panelDaAggiungere.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseEntered(MouseEvent e) {
+                            panelDaAggiungere.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                        }
+                    });
+                    c.gridheight = 1;
+                }
+
                 c.gridx = giornoIndex;
                 c.gridy = riga;
-                c.gridheight = 1;
-                pannelloOrario.add(panelVuoto, c);
-                riga++;
+                c.insets = new Insets(1, 1, 1, 1);
+                pannelloOrario.add(panelDaAggiungere, c);
+                riga += c.gridheight;
             }
         }
 
@@ -185,13 +366,31 @@ public class TabellaOraria extends JPanel {
             }
         }
 
-        JScrollPane scrollPane = new JScrollPane(pannelloOrario);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        this.add(scrollPane, BorderLayout.CENTER);
+        pannelloOrario.revalidate();
+        pannelloOrario.repaint();
     }
 
-    // Aggiungi questo metodo per creare il pannello "Libero"
+    private void aggiornaTabella() {
+        Container parent = getParent();
+        if (parent != null) {
+            parent.removeAll();
+
+            if (callbackAggiornamento != null) {
+                callbackAggiornamento.run();
+            } else {
+                pannelloOrario.revalidate();
+                pannelloOrario.repaint();
+            }
+
+            parent.revalidate();
+            parent.repaint();
+        }
+    }
+
+    public void setCallbackAggiornamento(Runnable callback) {
+        this.callbackAggiornamento = callback;
+    }
+
     private JPanel creaPanelLibero() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(245, 245, 245));
@@ -203,10 +402,21 @@ public class TabellaOraria extends JPanel {
         return panel;
     }
 
+    private JPanel creaPanelOccupato() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(245, 245, 245));
+        JLabel label = new JLabel("Occupato", SwingConstants.CENTER);
+        label.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        label.setForeground(Color.RED);
+        panel.add(label, BorderLayout.CENTER);
+        panel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        return panel;
+    }
+
     private JPanel creaPanelLezione(Lezione lezione,boolean isDocente) {
         JPanel panelLezione = new JPanel(new BorderLayout());
 
-        String[] cognomi = lezione.getCognomi();
+        String[] cognomi = lezione.getCognomi().toArray(new String[0]);
         String testoCognomi;
         if (cognomi.length == 0) {
             testoCognomi = "";
@@ -285,12 +495,11 @@ public class TabellaOraria extends JPanel {
                 maxOre = oreGiorno;
             }
         }
-        return Math.max(maxOre, 8);
+        return Math.min(maxOre, 8);
     }
 
     private boolean isColoreScuro(Color colore) {
         double luminosita = (0.299 * colore.getRed() + 0.587 * colore.getGreen() + 0.114 * colore.getBlue()) / 255;
         return luminosita < 0.5;
     }
-
 }

@@ -1,5 +1,7 @@
 package Entities;
 
+import Managers.GestoreDati;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ public class Docente implements Serializable {
 
     
     public String getCognome() { return cognome; }
+
     public ArrayList<Classe> getListaClassi() { return new ArrayList<>(listaClassi); }
     public ArrayList<String> getListaMaterie() { return new ArrayList<>(listaMaterie); }
 
@@ -55,15 +58,10 @@ public class Docente implements Serializable {
         return false;
     }
 
-    public void aggiungiOraDaRecuperare(int ore){
-        oreDaRecuperare += ore;
+    public void impostaOreDaRecuperare(int ore){
+        oreDaRecuperare = ore;
     }
 
-    public void rimuoviOraDaRecuperare(int ore){
-        if(oreDaRecuperare > 0 && (oreDaRecuperare - ore) > 0){
-            oreDaRecuperare = oreDaRecuperare - ore;
-        }
-    }
     
     public void rimuoviClasse(Classe classe) {
         listaClassi.remove(classe);
@@ -96,20 +94,7 @@ public class Docente implements Serializable {
 
     private ArrayList<String> disposizioni = new ArrayList<>();
 
-    public void aggiungiDisposizione(String giorno, String ora) {
-        disposizioni.add(giorno + "-" + ora);
-    }
-
-    public void rimuoviDisposizione(String giorno, String ora) {
-        disposizioni.remove(giorno + "-" + ora);
-    }
-    public ArrayList<String> getDisposizioni() {
-        return disposizioni;
-    }
-
-    public void pulisciDisposizioni() {
-        disposizioni.clear();
-    }
+    public int getOreDaRecuperare() {return oreDaRecuperare;}
 
     public ArrayList<Lezione> getListaLezioni() {
         return listaLezioni;

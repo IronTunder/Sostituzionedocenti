@@ -2,6 +2,7 @@ package Entities;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Lezione implements Serializable {
@@ -11,14 +12,13 @@ public class Lezione implements Serializable {
     private final int numero;
     private final String durata;
     private final String materia;
-    private final String[] cognomi;
+    private final ArrayList<String> cognomi;
     private final String sezione;
     private final String coDocente;
     private final String giorno;
     private final String oraInizio;
 
-    public Lezione(int numero, String durata, String materia, String cognomi,
-                   String classe, String coDocente, String giorno, String oraInizio) {
+    public Lezione(int numero, String durata, String materia, String cognomi, String classe, String coDocente, String giorno, String oraInizio) {
         this.numero = numero;
         this.durata = durata;
         this.materia = materia;
@@ -27,23 +27,28 @@ public class Lezione implements Serializable {
         this.coDocente = coDocente;
         this.giorno = giorno;
         this.oraInizio = oraInizio.replace("h", ":");
+
     }
     
     public int getNumero() { return numero; }
     public String getDurata() { return durata; }
     public String getMateria() { return materia; }
-    public String[] getCognomi() { return cognomi.clone(); } 
+    public ArrayList<String> getCognomi() { return cognomi; }
     public String getSezione() { return sezione; }
     public String getCoDocente() { return coDocente; }
     public String getGiorno() { return giorno; }
     public String getOraInizio() { return oraInizio; }
 
-
-    private String[] dividiCognomi(String cognomi) {
+    private ArrayList<String> dividiCognomi(String cognomi) {
         if (cognomi == null || cognomi.trim().isEmpty()) {
-            return new String[0];
+            return new ArrayList<>();
         }
-        return cognomi.replaceAll(" ","").split(";");
+        String[] cognomiArray = cognomi.replaceAll(" ","").split(";");
+        return new ArrayList<>(Arrays.asList(cognomiArray));
+    }
+
+    public void rimuoviDocente(String cognomeDocente) {
+        cognomi.removeIf(s -> s.equalsIgnoreCase(cognomeDocente));
     }
 
     public boolean isBioraria() {
@@ -57,9 +62,6 @@ public class Lezione implements Serializable {
             }
         }
         return false;
-    }
-    public String getCognomiFormattati() {
-        return String.join(", ", cognomi);
     }
 
     @Override
@@ -76,7 +78,7 @@ public class Lezione implements Serializable {
                 "numero=" + numero +
                 ", durata='" + durata + '\'' +
                 ", materia='" + materia + '\'' +
-                ", cognomi=" + Arrays.toString(cognomi) +
+                ", cognomi=" + cognomi +
                 ", sezione='" + sezione + '\'' +
                 ", coDocente='" + coDocente + '\'' +
                 ", giorno='" + giorno + '\'' +

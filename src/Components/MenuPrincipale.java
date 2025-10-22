@@ -43,7 +43,7 @@ public class MenuPrincipale extends JFrame {
     private void inizializzaUI(ArrayList<Classe> classi, ArrayList<Docente> docente) {
 
         this.setTitle("Gestione Orario Scolastico");
-        this.setSize(1280, 700);
+        this.setSize(1280, 750);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout(20, 20));
         this.setLocationRelativeTo(null);
@@ -259,12 +259,10 @@ public class MenuPrincipale extends JFrame {
 
         bAggiornazione.addActionListener(e -> {
             new InterfacciaAggiornamentoFile(gestoreDati,serializzazione);
-            dispose();
         });
 
         bGestioneOre.addActionListener(e -> {
             new InterfacciaGestioneOreRecupero(gestoreDati,serializzazione);
-            dispose();
         });
 
 

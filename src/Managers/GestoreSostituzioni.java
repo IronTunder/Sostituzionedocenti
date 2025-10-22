@@ -11,6 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -175,9 +176,7 @@ public class GestoreSostituzioni {
         Classe classe = gestoreDati.getClasseBySezione(lezione.getSezione());
         if (classe != null) {
             for (Docente docenteClasse : classe.getDocenti()) {
-                if (isNotAssente(docenteClasse) &&
-                        nonEGiaUsatoAllaStessaOra(docenteClasse, orario) &&
-                        docenteHaDisposizione(docenteClasse, orario)) {
+                if (isNotAssente(docenteClasse) && nonEGiaUsatoAllaStessaOra(docenteClasse, orario) && docenteHaDisposizione(docenteClasse, orario)) {
                     serializzazione.log("Trovato docente della stessa classe: " + docenteClasse.getCognome());
                     return docenteClasse;
                 }
@@ -219,8 +218,10 @@ public class GestoreSostituzioni {
 
     private Docente trovaDocenteOreDaRecuperare(Lezione lezione, String orario) {
       for (Docente docente : gestoreDati.getListaDocenti()) {
-          if(!docente.eInServizio(orario) && isNotAssente(docente) && nonEGiaUsatoAllaStessaOra(docente,orario)){
+          if(!docente.eInServizio(orario) && isNotAssente(docente) && nonEGiaUsatoAllaStessaOra(docente,orario) && docente.getOreDaRecuperare() > 0){
             serializzazione.log("Trovato docente con ore da recuperare " + docente.getCognome());
+            docente.impostaOreDaRecuperare(docente.getOreDaRecuperare() - 1);
+            serializzazione.salvaDati();
             return docente;
           }
       }
@@ -412,11 +413,11 @@ public class GestoreSostituzioni {
 
         JPanel legendaPanel = creaLegendaPanel();
 
-        JButton bottoneStampa = creaPulsante("Stampa Risultato", new Color(46, 139, 87));
+        JButton bottoneStampa = creaPulsante("Salva Risultato", new Color(46, 139, 87));
         bottoneStampa.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Salva piano sostituzioni");
-            fileChooser.setSelectedFile(new File("sostituzioni_" + giornataOdierna + ".pdf"));
+            fileChooser.setSelectedFile(new File("sostituzioni_" + LocalDate.now() + ".pdf"));
 
             int userSelection = fileChooser.showSaveDialog(risultato);
             if (userSelection == JFileChooser.APPROVE_OPTION) {
@@ -548,19 +549,16 @@ public class GestoreSostituzioni {
 
         document.open();
 
-        // Font
         Font titoloFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, BaseColor.DARK_GRAY);
         Font sottotitoloFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.DARK_GRAY);
         Font normaleFont = new Font(Font.FontFamily.HELVETICA, 10);
         Font piccoloFont = new Font(Font.FontFamily.HELVETICA, 8);
 
-        // Titolo
         Paragraph titolo = new Paragraph("PIANO SOSTITUZIONI", titoloFont);
         titolo.setAlignment(Element.ALIGN_CENTER);
         titolo.setSpacingAfter(5);
         document.add(titolo);
 
-        // Sottotitolo con data e giorno
         Paragraph sottotitolo = new Paragraph(giornataOdierna + " - " +
                 java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                 sottotitoloFont);
@@ -568,46 +566,35 @@ public class GestoreSostituzioni {
         sottotitolo.setSpacingAfter(20);
         document.add(sottotitolo);
 
-        // Tabella principale
         int numColonne = docentiAssenti.size() + 1;
         PdfPTable table = new PdfPTable(numColonne);
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
         table.setSpacingAfter(20f);
 
-        // Intestazioni colonne
         table.addCell(creaCellaPDF("ORARIO", sottotitoloFont, true, BaseColor.LIGHT_GRAY));
 
         for (Docente docente : docentiAssenti) {
             table.addCell(creaCellaPDF(docente.getCognome(), sottotitoloFont, true, BaseColor.LIGHT_GRAY));
         }
 
-        // Riga per ogni orario
         for (String orario : orari) {
-            // Cella orario
             table.addCell(creaCellaPDF(orario, normaleFont, true, new BaseColor(240, 240, 240)));
-
-            // Celle sostituti per ogni docente assente
             for (Docente docenteAssente : docentiAssenti) {
                 String sostituto = getSostituto(docenteAssente, orario);
                 String chiave = generaChiave(docenteAssente, orario);
                 Sostituzione sostituzione = sostituzioni.get(chiave);
-
                 if (sostituto.equals("-")) {
                     table.addCell(creaCellaPDF("Nessuna sostituzione", piccoloFont, false, BaseColor.WHITE));
                 } else {
                     String classeSostituzione = "-";
                     String tipoSostituzione = "";
-
                     if (sostituzione != null && sostituzione.lezione != null) {
                         classeSostituzione = sostituzione.lezione.getSezione();
                         tipoSostituzione = sostituzione.tipoDiSostituzione;
                     }
-
-                    // Crea contenuto cella con più informazioni
                     String contenutoCella = sostituto + "\nClasse: " + classeSostituzione +
                             "\nTipo: " + tipoSostituzione;
-
                     BaseColor coloreSfondo = convertiColorePerPDF(getColorePerTipoSostituzione(tipoSostituzione));
                     table.addCell(creaCellaPDF(contenutoCella, piccoloFont, false, coloreSfondo));
                 }
@@ -615,10 +602,7 @@ public class GestoreSostituzioni {
         }
 
         document.add(table);
-
-        // Sezione riepilogo
         document.add(creaRiepilogoSostituzioni(normaleFont, piccoloFont));
-
         document.close();
     }
 
@@ -647,13 +631,11 @@ public class GestoreSostituzioni {
         Paragraph riepilogo = new Paragraph();
         riepilogo.setSpacingBefore(20f);
 
-        // Titolo riepilogo
         Paragraph titoloRiepilogo = new Paragraph("RIEPILOGO SOSTITUZIONI",
                 new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD));
         titoloRiepilogo.setSpacingAfter(10f);
         riepilogo.add(titoloRiepilogo);
 
-        // Conta sostituzioni per tipo
         Map<String, Integer> conteggioPerTipo = new HashMap<>();
         int totaleSostituzioni = 0;
 
@@ -665,43 +647,23 @@ public class GestoreSostituzioni {
             }
         }
 
-        // Dettaglio per tipo
+        StringBuilder conteggi = new StringBuilder();
         for (Map.Entry<String, Integer> entry : conteggioPerTipo.entrySet()) {
-            Paragraph dettaglio = new Paragraph(
-                    String.format("• %s: %d sostituzioni", entry.getKey(), entry.getValue()),
-                    fontNormale);
-            dettaglio.setSpacingAfter(2f);
-            riepilogo.add(dettaglio);
-        }
-
-        // Totale
-        Paragraph totale = new Paragraph(
-                String.format("TOTALE SOSTITUZIONI: %d", totaleSostituzioni),
-                new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD));
-        totale.setSpacingAfter(10f);
-        riepilogo.add(totale);
-
-        // Dettaglio per docente assente
-        Paragraph dettaglioDocenti = new Paragraph("DETTAGLIO PER DOCENTE ASSENTE:",
-                new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD));
-        dettaglioDocenti.setSpacingAfter(5f);
-        riepilogo.add(dettaglioDocenti);
-
-        for (Docente docente : docentiAssenti) {
-            int sostituzioniDocente = 0;
-            for (String orario : orari) {
-                String sostituto = getSostituto(docente, orario);
-                if (!sostituto.equals("-")) {
-                    sostituzioniDocente++;
-                }
+            if (!conteggi.isEmpty()) {
+                conteggi.append("   |   ");
             }
-
-            Paragraph infoDocente = new Paragraph(
-                    String.format("• %s: %d ore sostituite", docente.getCognome(), sostituzioniDocente),
-                    fontPiccolo);
-            infoDocente.setSpacingAfter(2f);
-            riepilogo.add(infoDocente);
+            conteggi.append(entry.getKey()).append(": ").append(entry.getValue());
         }
+        if (totaleSostituzioni > 0) {
+            if (!conteggi.isEmpty()) {
+                conteggi.append("   |   ");
+            }
+            conteggi.append("TOTALE: ").append(totaleSostituzioni);
+        }
+
+        Paragraph dettaglio = new Paragraph(conteggi.toString(), fontNormale);
+        dettaglio.setSpacingAfter(2f);
+        riepilogo.add(dettaglio);
 
         return riepilogo;
     }

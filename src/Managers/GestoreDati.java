@@ -18,8 +18,7 @@ public class GestoreDati implements Serializable {
     private ArrayList<Classe> listaClassi = new ArrayList<>();
     private ArrayList<Lezione> listaLezioni = new ArrayList<>();
 
-    public void creaLezione(int numero, String durata, String materia, String cognomi,
-                            String classe, String coDocente, String giorno, String oraInizio) {
+    public void creaLezione(int numero, String durata, String materia, String cognomi, String classe, String coDocente, String giorno, String oraInizio) {
         boolean lezioneEsistente = listaLezioni.stream()
                 .anyMatch(lezione -> lezione.getNumero() == numero);
 
@@ -105,7 +104,6 @@ public class GestoreDati implements Serializable {
                 .filter(lezione -> lezione.getSezione().equals(sezione))
                 .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
-
     
     public ArrayList<Docente> getListaDocenti() {
         return new ArrayList<>(listaDocenti);

@@ -34,6 +34,10 @@ public class Serializzazione implements AutoCloseable {
             return;
         }
 
+        if(oos != null){
+            close();
+        }
+
         try {
             inizializzaOutput();
 
@@ -69,51 +73,6 @@ public class Serializzazione implements AutoCloseable {
         }
     }
 
-    public void aggiornaDati() {
-        if (gestoreDati.getListaClassi().isEmpty()) {
-            log("Nessun dato da aggiornare.");
-            return;
-        }
-
-        try {
-
-            ArrayList<Lezione> lezioniEsistenti = caricaLezioniEsistenti();
-            ArrayList<Docente> docentiEsistenti = caricaDocentiEsistenti();
-
-            ArrayList<Lezione> nuoveLezioni = new ArrayList<>();
-            for (Classe classe : gestoreDati.getListaClassi()) {
-                for (Lezione lezione : classe.getLezioni()) {
-                    if (!lezioniEsistenti.contains(lezione)) {
-                        nuoveLezioni.add(lezione);
-                    }
-                }
-            }
-
-            ArrayList<Docente> nuoviDocenti = new ArrayList<>();
-            for (Docente docente : gestoreDati.getListaDocenti()) {
-                if (!docentiEsistenti.contains(docente)) {
-                    nuoviDocenti.add(docente);
-                }
-            }
-
-            lezioniEsistenti.addAll(nuoveLezioni);
-            docentiEsistenti.addAll(nuoviDocenti);
-
-            inizializzaOutput();
-            oos.writeObject(lezioniEsistenti);
-            oos.writeObject(docentiEsistenti);
-            oos.writeObject(gestoreDati.getListaClassi());
-            oos.flush();
-
-            log("Dati aggiornati: " +
-                    nuoveLezioni.size() + " nuove lezioni, " +
-                    nuoviDocenti.size() + " nuovi docenti.");
-
-        } catch (IOException | ClassNotFoundException e) {
-            log("Errore durante l'aggiornamento: " + e.getMessage());
-            salvaDati();
-        }
-    }
 
     public void eliminaDati() {
         close();
