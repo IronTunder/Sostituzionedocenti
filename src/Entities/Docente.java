@@ -92,7 +92,7 @@ public class Docente implements Serializable {
                         lezione.getMateria().equalsIgnoreCase("Disposizione"));
     }
 
-    private ArrayList<String> disposizioni = new ArrayList<>();
+    private final ArrayList<String> disposizioni = new ArrayList<>();
 
     public int getOreDaRecuperare() {return oreDaRecuperare;}
 

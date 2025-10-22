@@ -21,7 +21,7 @@ public class TabellaOrariaInterattiva extends JPanel {
         void onCellaVuotaCliccata(String giorno, String orario, Object entita);
     }
 
-    private AscoltatoreCelle ascoltatore;
+    private final AscoltatoreCelle ascoltatore;
 
     public TabellaOrariaInterattiva(Classe classe, AscoltatoreCelle ascoltatore) {
         this.isDocente = false;
@@ -231,7 +231,7 @@ public class TabellaOrariaInterattiva extends JPanel {
 
         for (Component comp : cella.getComponents()) {
             if (comp instanceof JLabel) {
-                ((JLabel) comp).setForeground(coloreTesto);
+                comp.setForeground(coloreTesto);
             }
         }
 

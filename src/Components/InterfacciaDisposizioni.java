@@ -26,7 +26,7 @@ public class InterfacciaDisposizioni extends JFrame {
     private final Color COLORE_SELEZIONATO = new Color(144, 238, 144);
     private final Color COLORE_DISPOSIZIONE_ESISTENTE = new Color(255, 200, 100); // Arancione per disposizioni esistenti
 
-    private Map<String, JButton> celleDisposizioni;
+    private final Map<String, JButton> celleDisposizioni;
     private Docente docenteSelezionato;
 
     public InterfacciaDisposizioni(GestoreDati gestoreDati, Serializzazione serializzazione) {

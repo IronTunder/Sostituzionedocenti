@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class TabellaOraria extends JPanel {
 
-    private JPanel pannelloOrario;
+    private final JPanel pannelloOrario;
     private Runnable callbackAggiornamento;
 
     public TabellaOraria(Classe classe) {

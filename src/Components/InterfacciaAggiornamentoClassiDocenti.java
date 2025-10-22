@@ -227,7 +227,7 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
                         @Override
                         public void onCellaVuotaCliccata(String giorno, String orario, Object entita) {
-                            gestisciClickCellaVuota(giorno, orario, (Classe) entita);
+                            gestisciClickCellaVuota(giorno, orario, entita);
                         }
                     }
             );
@@ -251,7 +251,7 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
                         @Override
                         public void onCellaVuotaCliccata(String giorno, String orario, Object entita) {
-                            gestisciClickCellaVuota(giorno, orario, (Docente) entita);
+                            gestisciClickCellaVuota(giorno, orario, entita);
                         }
                     }
             );
