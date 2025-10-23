@@ -290,6 +290,7 @@ public class TabellaOraria extends JPanel {
                                 );
                                 if(scelta == JOptionPane.YES_OPTION){
                                     docente.getListaLezioni().remove(lezione);
+                                    gestoreDati.eliminaLezione(lezione);
                                     lezione.rimuoviDocente(docente.getCognome());
                                     serializzazione.log("Disposizione rimossa: Docente " + docente.getCognome() + ", Giorno " + giorno + ", Ora " + orarioCorrente);
                                     serializzazione.log("Docente " + docente.getCognome() + " rimosso dalla lezione numero " + lezione.getNumero());
@@ -336,7 +337,9 @@ public class TabellaOraria extends JPanel {
                             );
                             if(scelta == JOptionPane.YES_OPTION){
                                 int nuovoNumero = gestoreDati.getListaLezioni().isEmpty() ? 1 : gestoreDati.getListaLezioni().getLast().getNumero() + 1;
-                                docente.getListaLezioni().add(new Lezione(nuovoNumero, "1h", materiaFilter, docente.getCognome(), "Disposizione", "", giorno, orarioCorrente.replace(":", "h")));
+                                Lezione lezione = new Lezione(nuovoNumero, "1h", materiaFilter, docente.getCognome(), "Disposizione", "", giorno, orarioCorrente.replace(":", "h"));
+                                docente.getListaLezioni().add(lezione);
+                                gestoreDati.aggiungiLezione(lezione);
                                 serializzazione.log("Disposizione aggiunta: Docente " + docente.getCognome() + ", Giorno " + giorno + ", Ora " + orarioCorrente);
                                 serializzazione.salvaDati();
                                 aggiornaTabella();
@@ -484,19 +487,111 @@ public class TabellaOraria extends JPanel {
 
     private int calcolaMaxOrePerGiorno(ArrayList<Lezione> lezioni, String[] giorni) {
         int maxOre = 0;
+
         for (String giorno : giorni) {
-            int oreGiorno = 0;
+            // Filtra le lezioni per il giorno corrente
+            ArrayList<Lezione> lezioniGiorno = new ArrayList<>();
             for (Lezione lezione : lezioni) {
                 if (lezione.getGiorno().equalsIgnoreCase(giorno)) {
-                    oreGiorno += (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+                    lezioniGiorno.add(lezione);
                 }
             }
-            if (oreGiorno > maxOre) {
-                maxOre = oreGiorno;
+
+            // Se non ci sono lezioni, ore libere = 0
+            if (lezioniGiorno.isEmpty()) {
+                continue;
+            }
+
+            // Ordina le lezioni per orario di inizio
+            lezioniGiorno.sort((l1, l2) -> {
+                String ora1 = l1.getOraInizio().replace("h", ":");
+                String ora2 = l2.getOraInizio().replace("h", ":");
+                return ora1.compareTo(ora2);
+            });
+
+            int oreLibere = 0;
+
+            // Calcola ore libere PRIMA della prima lezione (dalle 8:00 alla prima lezione)
+            String primaLezioneInizio = lezioniGiorno.get(0).getOraInizio().replace("h", ":");
+            int primaLezioneInizioMinuti = convertiInMinuti(primaLezioneInizio);
+            int inizioGiornataMinuti = convertiInMinuti("08:00"); // Inizio giornata scolastica
+
+            if (primaLezioneInizioMinuti > inizioGiornataMinuti) {
+                oreLibere += (primaLezioneInizioMinuti - inizioGiornataMinuti) / 60;
+            }
+
+            // Calcola ore libere TRA le lezioni
+            for (int i = 0; i < lezioniGiorno.size() - 1; i++) {
+                Lezione lezioneCorrente = lezioniGiorno.get(i);
+                Lezione lezioneSuccessiva = lezioniGiorno.get(i + 1);
+
+                String fineCorrente = calcolaOraFine(
+                        lezioneCorrente.getOraInizio().replace("h", ":"),
+                        lezioneCorrente.getDurata()
+                );
+                String inizioSuccessiva = lezioneSuccessiva.getOraInizio().replace("h", ":");
+
+                int fineCorrenteMinuti = convertiInMinuti(fineCorrente);
+                int inizioSuccessivaMinuti = convertiInMinuti(inizioSuccessiva);
+
+                if (inizioSuccessivaMinuti > fineCorrenteMinuti) {
+                    oreLibere += (inizioSuccessivaMinuti - fineCorrenteMinuti) / 60;
+                }
+            }
+
+            // Calcola ore libere DOPO l'ultima lezione (dall'ultima lezione alle 14:00)
+            String ultimaLezioneFine = calcolaOraFine(
+                    lezioniGiorno.get(lezioniGiorno.size() - 1).getOraInizio().replace("h", ":"),
+                    lezioniGiorno.get(lezioniGiorno.size() - 1).getDurata()
+            );
+            int ultimaLezioneFineMinuti = convertiInMinuti(ultimaLezioneFine);
+            int fineGiornataMinuti = convertiInMinuti("13:00"); // Fine giornata scolastica
+
+            if (fineGiornataMinuti > ultimaLezioneFineMinuti) {
+                oreLibere += (fineGiornataMinuti - ultimaLezioneFineMinuti) / 60;
+            }
+
+            // Somma la durata totale delle lezioni
+            int durataLezioni = 0;
+            for (Lezione lezione : lezioniGiorno) {
+                durataLezioni += (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+            }
+
+            // Ore totali = ore libere + durata lezioni
+            int oreTotali = oreLibere + durataLezioni;
+
+            if (oreTotali > maxOre) {
+                maxOre = oreTotali;
             }
         }
+        System.out.println(maxOre);
         return Math.min(maxOre, 8);
     }
+
+    // Metodo helper per calcolare l'ora di fine di una lezione
+    private String calcolaOraFine(String orarioInizio, String durata) {
+        int inizioMinuti = convertiInMinuti(orarioInizio);
+        int durataMinuti = (int)(Double.parseDouble(durata.replace('h', '.')) * 60);
+        int fineMinuti = inizioMinuti + durataMinuti;
+
+        int ore = fineMinuti / 60;
+        int minuti = fineMinuti % 60;
+        return String.format("%02d:%02d", ore, minuti);
+    }
+
+    // Metodo helper per convertire un orario in minuti
+    private int convertiInMinuti(String orario) {
+        try {
+            String[] parti = orario.split(":");
+            int ore = Integer.parseInt(parti[0]);
+            int minuti = Integer.parseInt(parti[1]);
+            return ore * 60 + minuti;
+        } catch (Exception e) {
+            System.err.println("Errore nella conversione dell'orario: " + orario);
+            return 0;
+        }
+    }
+
 
     private boolean isColoreScuro(Color colore) {
         double luminosita = (0.299 * colore.getRed() + 0.587 * colore.getGreen() + 0.114 * colore.getBlue()) / 255;

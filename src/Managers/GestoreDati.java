@@ -27,6 +27,14 @@ public class GestoreDati implements Serializable {
         }
     }
 
+    public void eliminaLezione(Lezione lezione){
+        listaLezioni.remove(lezione);
+    }
+
+    public void aggiungiLezione(Lezione lezione){
+        listaLezioni.add(lezione);
+    }
+
     public void creaDocente(String cognome) {
         boolean docenteEsistente = esisteDocente(cognome);
 
