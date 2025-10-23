@@ -235,10 +235,7 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                     dispose();
                 }
             } else {
-                JOptionPane.showMessageDialog(this,
-                        "Nessun docente selezionato.",
-                        "Attenzione",
-                        JOptionPane.ERROR_MESSAGE);
+                mostraMessaggioErrore("Nessun docente selezionato.");
             }
         });
 
@@ -253,6 +250,19 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
 
         aggiornaLista();
         this.setVisible(true);
+    }
+
+    private void mostraMessaggioErrore(String messaggio) {
+        Color coloreMessaggioOriginale = UIManager.getColor("OptionPane.messageForeground");
+        Color colorePulsanteOriginale = UIManager.getColor("Button.foreground");
+
+        UIManager.put("OptionPane.messageForeground", Color.BLACK);
+        UIManager.put("Button.foreground", Color.BLACK);
+
+        JOptionPane.showMessageDialog(this, messaggio, "Attenzione", JOptionPane.ERROR_MESSAGE);
+
+        UIManager.put("OptionPane.messageForeground", coloreMessaggioOriginale);
+        UIManager.put("Button.foreground", colorePulsanteOriginale);
     }
 
     private void filtra(String stringa) {

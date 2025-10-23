@@ -39,6 +39,8 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
         inizializzaUI(gestoreDati.getListaClassi(), gestoreDati.getListaDocenti());
 
+
+        aggiornaTabellaClasse();
     }
 
     private void inizializzaUI(ArrayList<Classe> classi, ArrayList<Docente> docente) {
@@ -263,6 +265,12 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
     // Aggiungi questi metodi per gestire gli eventi:
     private void gestisciClickLezione(Lezione lezione) {
+        // Cambia i colori di UIManager temporaneamente
+        UIManager.put("OptionPane.background", Color.WHITE);
+        UIManager.put("Panel.background", Color.WHITE);
+        UIManager.put("OptionPane.messageForeground", Color.BLACK);
+        UIManager.put("Button.foreground", Color.BLACK);
+
         int scelta = JOptionPane.showOptionDialog(
                 this,
                 "Cosa vuoi fare con questa lezione?",
@@ -273,6 +281,10 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
                 new String[]{"Modifica", "Elimina", "Annulla"},
                 "Modifica"
         );
+
+        // Ripristina i colori originali
+        UIManager.put("OptionPane.messageForeground", null);
+        UIManager.put("Button.foreground", null);
 
         switch (scelta) {
             case 0: // Modifica
@@ -289,6 +301,9 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         String nome = entita instanceof Classe ?
                 ((Classe) entita).getSezione() : ((Docente) entita).getCognome();
 
+        UIManager.put("OptionPane.messageForeground", Color.BLACK);
+        UIManager.put("Button.foreground", Color.BLACK);
+
         JOptionPane.showMessageDialog(
                 this,
                 "Aggiungi nuova lezione per:\n" +
@@ -299,22 +314,41 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
                 JOptionPane.INFORMATION_MESSAGE
         );
 
+        // Ripristina
+        UIManager.put("OptionPane.messageForeground", null);
+        UIManager.put("Button.foreground", null);
+
         // TODO: Implementare la logica di aggiunta lezione
         System.out.println("Aggiungi lezione per " + tipo + " " + nome + " il " + giorno + " alle " + orario);
     }
 
     private void modificaLezione(Lezione lezione) {
+        UIManager.put("OptionPane.messageForeground", Color.BLACK);
+        UIManager.put("Button.foreground", Color.BLACK);
+
         // TODO: Implementare modifica lezione
         JOptionPane.showMessageDialog(this, "Modifica lezione: " + lezione.getMateria());
+
+        // Ripristina
+        UIManager.put("OptionPane.messageForeground", null);
+        UIManager.put("Button.foreground", null);
     }
 
     private void eliminaLezione(Lezione lezione) {
+        // Imposta colori per testo nero
+        UIManager.put("OptionPane.messageForeground", Color.BLACK);
+        UIManager.put("Button.foreground", Color.BLACK);
+
         int conferma = JOptionPane.showConfirmDialog(
                 this,
                 "Sei sicuro di voler eliminare la lezione di " + lezione.getMateria() + "?",
                 "Conferma Eliminazione",
                 JOptionPane.YES_NO_OPTION
         );
+
+        // Ripristina
+        UIManager.put("OptionPane.messageForeground", null);
+        UIManager.put("Button.foreground", null);
 
         if (conferma == JOptionPane.YES_OPTION) {
             // TODO: Implementare eliminazione lezione
@@ -352,9 +386,7 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         JButton bIndietro = new JButton("Indietro");
 
 
-
         personalizzaBottone(bIndietro, new Color(255, 159, 67));
-
 
 
         bIndietro.addActionListener(e -> {
@@ -362,7 +394,6 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
             new MenuPrincipale(gestoreDati, serializzazione);
 
         });
-
 
 
         pannelloPulsanti.add(bIndietro);
