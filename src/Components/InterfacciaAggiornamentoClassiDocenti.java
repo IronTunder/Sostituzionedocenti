@@ -301,8 +301,8 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         String nome = entita instanceof Classe ?
                 ((Classe) entita).getSezione() : ((Docente) entita).getCognome();
 
-        // Imposta colori per testo nero
         UIManager.put("OptionPane.messageForeground", Color.BLACK);
+        UIManager.put("Button.foreground", Color.BLACK);
 
         JOptionPane.showMessageDialog(
                 this,
@@ -316,20 +316,22 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
         // Ripristina
         UIManager.put("OptionPane.messageForeground", null);
+        UIManager.put("Button.foreground", null);
 
         // TODO: Implementare la logica di aggiunta lezione
         System.out.println("Aggiungi lezione per " + tipo + " " + nome + " il " + giorno + " alle " + orario);
     }
 
     private void modificaLezione(Lezione lezione) {
-        // Imposta colori per testo nero
         UIManager.put("OptionPane.messageForeground", Color.BLACK);
+        UIManager.put("Button.foreground", Color.BLACK);
 
         // TODO: Implementare modifica lezione
         JOptionPane.showMessageDialog(this, "Modifica lezione: " + lezione.getMateria());
 
         // Ripristina
         UIManager.put("OptionPane.messageForeground", null);
+        UIManager.put("Button.foreground", null);
     }
 
     private void eliminaLezione(Lezione lezione) {
