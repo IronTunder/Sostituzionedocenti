@@ -81,6 +81,11 @@ public class Docente implements Serializable {
                 .anyMatch(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno));
     }
 
+    public boolean haLezioneInOraEGiorno(String ora, String giorno){
+        return listaLezioni.stream()
+                .anyMatch(lezione -> lezione.getGiorno().equals(giorno) && lezione.getOraInizio().equals(ora));
+    }
+
     public boolean insegnaMateria(String materia) {
         return listaMaterie.contains(materia);
     }

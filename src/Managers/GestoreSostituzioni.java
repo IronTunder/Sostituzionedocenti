@@ -42,25 +42,29 @@ public class GestoreSostituzioni {
         }
     }
 
-    public GestoreSostituzioni(GestoreDati gestoreDati, Serializzazione serializzazione, ArrayList<Docente> docentiAssenti) {
+    public GestoreSostituzioni(GestoreDati gestoreDati, Serializzazione serializzazione, ArrayList<Docente> docentiAssenti, String giorno, String ora) {
         this.docentiAssenti = docentiAssenti;
         this.gestoreDati = gestoreDati;
         this.sostituzioni = new HashMap<>();
         this.docentiUtilizzatiPerOra = new HashSet<>();
         this.serializzazione = serializzazione;
 
-        int giornoSettimana = LocalDateTime.now().getDayOfWeek().getValue();
-        if(giornoSettimana == 7)
-            giornoSettimana = 1;
-        String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
-        giornataOdierna = giorni[giornoSettimana - 1];
+        giornataOdierna = giorno;
 
-        for (Docente docente : docentiAssenti) {
-            serializzazione.log("=============================================");
-            serializzazione.log("**** Processando sostituzioni per docente assente: " + docente.getCognome() + " ****");
-            processaLezioniDocente(docente);
+        if(ora.equals("Tutto il giorno")) {
+            for (Docente docente : docentiAssenti) {
+                serializzazione.log("=============================================");
+                serializzazione.log("**** Processando sostituzioni per docente assente: " + docente.getCognome() + " ****");
+                processaLezioniDocente(docente);
+            }
         }
-
+        else{
+            for (Docente docente : docentiAssenti) {
+                serializzazione.log("=============================================");
+                serializzazione.log("**** Processando sostituzioni per docente assente: " + docente.getCognome() + " ****");
+                processaLezioniDocente(docente,ora);
+            }
+        }
         serializzazione.log(stampaSostituzioni());
     }
 
@@ -111,6 +115,52 @@ public class GestoreSostituzioni {
 
     }
 
+    private void processaLezioniDocente(Docente docente,String ora) {
+        if(docente.haLezioneInGiorno(giornataOdierna)){
+            ArrayList<Lezione> lezioniOrdinate = new ArrayList<>(docente.getListaLezioni());
+            lezioniOrdinate.sort((l1, l2) -> {
+                boolean l1Quinta = isAQuinta(l1);
+                boolean l2Quinta = isAQuinta(l2);
+                if (l1Quinta && !l2Quinta) return -1;
+                if (!l1Quinta && l2Quinta) return 1;
+                return 0;
+            });
+            for (Lezione lezione : lezioniOrdinate) {
+                if (lezione.getGiorno().equalsIgnoreCase(giornataOdierna) && !lezione.getMateria().equalsIgnoreCase("Disposizione") && lezione.getOraInizio().equalsIgnoreCase(ora)) {
+                    serializzazione.log("Processando lezione: " + lezione.getMateria() + " per " + docente.getCognome() +
+                            " (Durata: " + lezione.getDurata() + ")");
+
+                    int durata = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+                    String orarioInizio = lezione.getOraInizio();
+
+                    int indiceOrarioInizio = -1;
+                    for (int i = 0; i < orari.length; i++) {
+                        if (orari[i].equals(orarioInizio)) {
+                            indiceOrarioInizio = i;
+                            break;
+                        }
+                    }
+
+                    if (indiceOrarioInizio == -1) {
+                        serializzazione.error("Orario di inizio non trovato: " + orarioInizio);
+                        continue;
+                    }
+
+                    for (int i = 0; i < durata; i++) {
+                        if (indiceOrarioInizio + i < orari.length) {
+                            String orarioCorrente = orari[indiceOrarioInizio + i];
+                            processaSingolaOra(docente, lezione, orarioCorrente, i);
+                        }
+                    }
+                }
+            }
+        }
+        else{
+            serializzazione.log("Nessuna lezione da sostituire per " + docente.getCognome() + " oggi (" + giornataOdierna + ").");
+            serializzazione.log("=============================================");
+        }
+
+    }
     private void processaSingolaOra(Docente docenteAssente, Lezione lezione, String orario, int indiceOra) {
         serializzazione.log("=== Cercando sostituto per " + docenteAssente.getCognome() +
                 " alle " + orario + " (" + lezione.getSezione() + ") ===");
