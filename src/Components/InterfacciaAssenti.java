@@ -15,6 +15,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final Color COLORE_SFONDO = new Color(255, 255, 255);
@@ -27,6 +28,10 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
     private final ArrayList<Docente> docenti;
     private final ArrayList<Docente> docentiFiltrati;
 
+    String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
+    private final JComboBox<String> giorniComboBox =  new JComboBox<>(giorni);
+    String[] ore = {"08:00", "09:00", "10:00", "11:10", "12:05", "13:00", "Tutto il giorno"};
+    private final JComboBox<String> oreComboBox =  new JComboBox<>(ore);
     private final Map<JCheckBox, Docente> mappaCheckBoxDocente = new HashMap<>();
     private final Map<Docente, Boolean> statoCheckbox = new HashMap<>(); // AGGIUNTA: memorizza lo stato delle checkbox
 
@@ -64,6 +69,7 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         panelNord.add(titolo, BorderLayout.NORTH);
 
         JPanel panelRicerca = new JPanel(new BorderLayout(10, 0));
+        JPanel panelSelezione = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
         panelRicerca.setBackground(COLORE_SFONDO);
         panelRicerca.setBorder(new EmptyBorder(0, 0, 0, 0));
 
@@ -97,7 +103,9 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
 
         panelRicerca.add(campoRicerca, BorderLayout.CENTER);
         panelNord.add(panelRicerca, BorderLayout.CENTER);
-
+        panelNord.add(panelSelezione, BorderLayout.SOUTH);
+        panelSelezione.add(giorniComboBox);
+        panelSelezione.add(oreComboBox);
         campoRicerca.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 campoRicerca.setBorder(BorderFactory.createCompoundBorder(
@@ -144,6 +152,16 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                     filtra(testo);
                 }
             }
+        });
+
+        giorniComboBox.addActionListener(e ->{
+            filtra(campoRicerca.getText());
+            aggiornaLista();
+        });
+
+        oreComboBox.addActionListener(e ->{
+            filtra(campoRicerca.getText());
+            aggiornaLista();
         });
 
         campoRicerca.addActionListener(this);
@@ -212,15 +230,12 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 if (scelta == JOptionPane.YES_OPTION) {
                     serializzazione.log("===================================================================");
                     serializzazione.log("Avvio calcolo sostituzioni per " + selezionati + " docenti assenti.");
-                    gestoreSostituzioni = new GestoreSostituzioni(gestoreDati,serializzazione,getDocentiAssenti());
+                    gestoreSostituzioni = new GestoreSostituzioni(gestoreDati,serializzazione,getDocentiAssenti(),giorniComboBox.getSelectedItem().toString(), oreComboBox.getSelectedItem().toString());
                     gestoreSostituzioni.risultato();
                     dispose();
                 }
             } else {
-                JOptionPane.showMessageDialog(this,
-                        "Nessun docente selezionato.",
-                        "Attenzione",
-                        JOptionPane.ERROR_MESSAGE);
+                mostraMessaggioErrore("Nessun docente selezionato.");
             }
         });
 
@@ -237,6 +252,19 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         this.setVisible(true);
     }
 
+    private void mostraMessaggioErrore(String messaggio) {
+        Color coloreMessaggioOriginale = UIManager.getColor("OptionPane.messageForeground");
+        Color colorePulsanteOriginale = UIManager.getColor("Button.foreground");
+
+        UIManager.put("OptionPane.messageForeground", Color.BLACK);
+        UIManager.put("Button.foreground", Color.BLACK);
+
+        JOptionPane.showMessageDialog(this, messaggio, "Attenzione", JOptionPane.ERROR_MESSAGE);
+
+        UIManager.put("OptionPane.messageForeground", coloreMessaggioOriginale);
+        UIManager.put("Button.foreground", colorePulsanteOriginale);
+    }
+
     private void filtra(String stringa) {
         // Salva lo stato corrente delle checkbox prima di filtrare
         salvaStatoCheckbox();
@@ -245,20 +273,26 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         docentiFiltrati.clear();
 
         if (q.isEmpty() || q.equals("cerca per cognome...")) {
-            docentiFiltrati.addAll(docenti);
+            for (Docente d : docenti) {
+                if (d.haLezioneInGiorno(Objects.requireNonNull(giorniComboBox.getSelectedItem()).toString()) && (d.haLezioneInOraEGiorno(Objects.requireNonNull(oreComboBox.getSelectedItem()).toString(),giorniComboBox.getSelectedItem().toString()) && !oreComboBox.getSelectedItem().toString().equals("Tutto il giorno")))
+                {
+                    docentiFiltrati.add(d);
+                }
+            }
         } else {
             for (Docente d : docenti) {
                 if (d.getCognome() != null && d.getCognome().toLowerCase().contains(q)) {
-                    docentiFiltrati.add(d);
+                    if (d.haLezioneInGiorno(Objects.requireNonNull(giorniComboBox.getSelectedItem()).toString()) && (d.haLezioneInOraEGiorno(Objects.requireNonNull(oreComboBox.getSelectedItem()).toString(),giorniComboBox.getSelectedItem().toString()) && !oreComboBox.getSelectedItem().toString().equals("Tutto il giorno")))
+                    {
+                        docentiFiltrati.add(d);
+                    }
+
                 }
             }
         }
         aggiornaLista();
     }
 
-    /**
-     * Salva lo stato corrente di tutte le checkbox nella mappa statoCheckbox
-     */
     private void salvaStatoCheckbox() {
         for (JCheckBox checkBox : checkBoxes) {
             Docente docente = mappaCheckBoxDocente.get(checkBox);
@@ -266,6 +300,11 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 statoCheckbox.put(docente, checkBox.isSelected());
             }
         }
+    }
+    private void giorno()
+    {
+
+
     }
 
     private void aggiornaLista() {
@@ -389,6 +428,8 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         pannelloBottoni.revalidate();
         pannelloBottoni.repaint();
     }
+
+
 
     @Override
     public void actionPerformed(ActionEvent e) {
