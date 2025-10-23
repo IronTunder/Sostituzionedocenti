@@ -382,9 +382,7 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         JButton bIndietro = new JButton("Indietro");
 
 
-
         personalizzaBottone(bIndietro, new Color(255, 159, 67));
-
 
 
         bIndietro.addActionListener(e -> {
@@ -392,7 +390,6 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
             new MenuPrincipale(gestoreDati, serializzazione);
 
         });
-
 
 
         pannelloPulsanti.add(bIndietro);
