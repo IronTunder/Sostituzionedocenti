@@ -39,6 +39,8 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
         inizializzaUI(gestoreDati.getListaClassi(), gestoreDati.getListaDocenti());
 
+
+        aggiornaTabellaClasse();
     }
 
     private void inizializzaUI(ArrayList<Classe> classi, ArrayList<Docente> docente) {
