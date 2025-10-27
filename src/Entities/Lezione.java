@@ -9,14 +9,14 @@ public class Lezione implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private final int numero;
-    private final String durata;
-    private final String materia;
-    private final ArrayList<String> cognomi;
-    private final String sezione;
-    private final String coDocente;
-    private final String giorno;
-    private final String oraInizio;
+    private int numero;
+    private String durata;
+    private String materia;
+    private ArrayList<String> cognomi;
+    private String sezione;
+    private String coDocente;
+    private String giorno;
+    private String oraInizio;
 
     public Lezione(int numero, String durata, String materia, String cognomi, String classe, String coDocente, String giorno, String oraInizio) {
         this.numero = numero;
@@ -38,6 +38,22 @@ public class Lezione implements Serializable {
     public String getCoDocente() { return coDocente; }
     public String getGiorno() { return giorno; }
     public String getOraInizio() { return oraInizio; }
+
+    public void setMateria(String materia) {
+        this.materia = materia;
+    }
+
+    public void setCognomi(ArrayList<String> cognomi) {
+        this.cognomi = cognomi;
+    }
+
+    public void setDurata(String durata) {
+        this.durata = durata;
+    }
+
+    public void setCoDocente(String coDocente) {
+        this.coDocente = coDocente;
+    }
 
     private ArrayList<String> dividiCognomi(String cognomi) {
         if (cognomi == null || cognomi.trim().isEmpty()) {

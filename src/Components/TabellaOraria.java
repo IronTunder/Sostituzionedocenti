@@ -59,6 +59,47 @@ public class TabellaOraria extends JPanel {
         this.add(scrollPane, BorderLayout.CENTER);
     }
 
+    public TabellaOraria(Classe classe, GestoreDati gestoreDati, Serializzazione serializzazione) {
+        setLayout(new BorderLayout());
+
+        ArrayList<Lezione> lezioni = classe.getLezioni();
+        JLabel titolo = new JLabel("Orario della classe: " + classe.getSezione(), SwingConstants.CENTER);
+        titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titolo.setForeground(new Color(50, 50, 70));
+        this.add(titolo, BorderLayout.NORTH);
+
+        pannelloOrario = new JPanel();
+        pannelloOrario.setLayout(new GridBagLayout());
+        pannelloOrario.setBackground(Color.WHITE);
+
+        ricreaTabellaClasseInterattiva(classe, gestoreDati, serializzazione);
+
+        JScrollPane scrollPane = new JScrollPane(pannelloOrario);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        this.add(scrollPane, BorderLayout.CENTER);
+    }
+
+    public TabellaOraria(Docente docente, GestoreDati gestoreDati, Serializzazione serializzazione) {
+        setLayout(new BorderLayout());
+        ArrayList<Lezione> lezioni = docente.getListaLezioni();
+        JLabel titolo = new JLabel("Orario del docente: " + docente.getCognome(), SwingConstants.CENTER);
+        titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titolo.setForeground(new Color(50, 50, 70));
+        this.add(titolo, BorderLayout.NORTH);
+
+        pannelloOrario = new JPanel();
+        pannelloOrario.setLayout(new GridBagLayout());
+        pannelloOrario.setBackground(Color.WHITE);
+
+        ricreaTabellaDocenteInterattiva(docente, gestoreDati, serializzazione);
+
+        JScrollPane scrollPane = new JScrollPane(pannelloOrario);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        this.add(scrollPane, BorderLayout.CENTER);
+    }
+
     public TabellaOraria(Docente docente, String materiaFilter, GestoreDati gestoreDati, Serializzazione serializzazione) {
         this(docente, materiaFilter, gestoreDati, serializzazione, null);
     }
@@ -371,6 +412,413 @@ public class TabellaOraria extends JPanel {
 
         pannelloOrario.revalidate();
         pannelloOrario.repaint();
+    }
+
+    private void ricreaTabellaClasseInterattiva(Classe classe, GestoreDati gestoreDati, Serializzazione serializzazione) {
+        pannelloOrario.removeAll();
+        ArrayList<Lezione> lezioni = classe.getLezioni();
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1.0;
+        c.weighty = 1.0;
+
+        String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
+        String[] orari = {"08:00", "09:00", "10:00", "11:10", "12:05", "13:00"};
+
+        int maxOrePerGiorno = calcolaMaxOrePerGiorno(lezioni, giorni);
+
+        for (int i = 0; i < giorni.length; i++) {
+            JLabel labelGiorno = new JLabel(giorni[i], SwingConstants.CENTER);
+            labelGiorno.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            labelGiorno.setOpaque(true);
+            labelGiorno.setBackground(new Color(70, 130, 180));
+            labelGiorno.setForeground(Color.WHITE);
+            labelGiorno.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.BLACK),
+                    BorderFactory.createEmptyBorder(8, 5, 8, 5)
+            ));
+            c.gridx = i;
+            c.gridy = 0;
+            c.gridheight = 1;
+            pannelloOrario.add(labelGiorno, c);
+        }
+
+        for (int giornoIndex = 0; giornoIndex < giorni.length; giornoIndex++) {
+            String giorno = giorni[giornoIndex].toLowerCase();
+            ArrayList<Lezione> lezioniGiorno = getLezioniPerGiorno(lezioni, giorno);
+
+            int riga = 1;
+            for (Lezione lezione : lezioniGiorno) {
+                JPanel panelLezione = creaPanelLezione(lezione,false);
+                panelLezione.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        Object[] options = {"<html><font color=#000000>Conferma</font></html>", "<html><font color=#FF0000>Annulla</font></html>"};
+                        int scelta = JOptionPane.showOptionDialog(
+                                null,
+                                "Cosa vuoi fare con questa lezione?",
+                                "Gestione Lezione - " + lezione.getMateria(),
+                                JOptionPane.DEFAULT_OPTION,
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                new String[]{"Modifica", "Elimina", "Annulla"},
+                                "Modifica"
+                        );
+                        switch (scelta) {
+                            case 0:
+                                modificaLezione(lezione,gestoreDati,serializzazione);
+                                aggiornaTabella();
+                                break;
+                            case 1:
+                                eliminaLezione(lezione,gestoreDati,serializzazione);
+                                aggiornaTabella();
+                                break;
+                        }
+                    }
+                });
+                panelLezione.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        panelLezione.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    }
+                });
+                c.gridx = giornoIndex;
+                c.gridy = riga;
+                c.gridheight = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+                c.insets = new Insets(1, 1, 1, 1);
+
+                pannelloOrario.add(panelLezione, c);
+                riga += c.gridheight;
+            }
+
+            while (riga <= maxOrePerGiorno) {
+                JPanel panelVuoto = new JPanel(new BorderLayout());
+                panelVuoto.setBackground(Color.WHITE);
+                panelVuoto.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+
+                c.gridx = giornoIndex;
+                c.gridy = riga;
+                c.gridheight = 1;
+                pannelloOrario.add(panelVuoto, c);
+                riga++;
+            }
+        }
+
+        for (Component comp : pannelloOrario.getComponents()) {
+            if (comp instanceof JPanel) {
+                comp.setPreferredSize(new Dimension(120, 60));
+            }
+        }
+
+        pannelloOrario.revalidate();
+        pannelloOrario.repaint();
+    }
+
+    private void ricreaTabellaDocenteInterattiva(Docente docente, GestoreDati gestoreDati, Serializzazione serializzazione) {
+        pannelloOrario.removeAll();
+        ArrayList<Lezione> lezioni = docente.getListaLezioni();
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1.0;
+        c.weighty = 1.0;
+
+        String[] giorni = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"};
+        String[] orari = {"08:00", "09:00", "10:00", "11:10", "12:05", "13:00"};
+
+        int maxOrePerGiorno = calcolaMaxOrePerGiorno(lezioni, giorni);
+
+        for (int i = 0; i < giorni.length; i++) {
+            JLabel labelGiorno = new JLabel(giorni[i], SwingConstants.CENTER);
+            labelGiorno.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            labelGiorno.setOpaque(true);
+            labelGiorno.setBackground(new Color(70, 130, 180));
+            labelGiorno.setForeground(Color.WHITE);
+            labelGiorno.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.BLACK),
+                    BorderFactory.createEmptyBorder(8, 5, 8, 5)
+            ));
+            c.gridx = i;
+            c.gridy = 0;
+            c.gridheight = 1;
+            pannelloOrario.add(labelGiorno, c);
+        }
+
+        for (int giornoIndex = 0; giornoIndex < giorni.length; giornoIndex++) {
+            String giorno = giorni[giornoIndex].toLowerCase();
+            ArrayList<Lezione> lezioniGiorno = getLezioniPerGiorno(lezioni, giorno);
+
+            int riga = 1;
+            for (Lezione lezione : lezioniGiorno) {
+                JPanel panelLezione = creaPanelLezione(lezione, true);
+                panelLezione.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        Object[] options = {"<html><font color=#000000>Conferma</font></html>", "<html><font color=#FF0000>Annulla</font></html>"};
+                        int scelta = JOptionPane.showOptionDialog(
+                                null,
+                                "Cosa vuoi fare con questa lezione?",
+                                "Gestione Lezione - " + lezione.getMateria(),
+                                JOptionPane.DEFAULT_OPTION,
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                new String[]{"Modifica", "Elimina", "Annulla"},
+                                "Modifica"
+                        );
+                        switch (scelta) {
+                            case 0:
+                                modificaLezione(lezione, gestoreDati, serializzazione);
+                                aggiornaTabella();
+                                break;
+                            case 1:
+                                eliminaLezione(lezione, gestoreDati, serializzazione);
+                                aggiornaTabella();
+                                break;
+                        }
+                    }
+                });
+                panelLezione.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        panelLezione.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    }
+                });
+                c.gridx = giornoIndex;
+                c.gridy = riga;
+                c.gridheight = (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
+                c.insets = new Insets(1, 1, 1, 1);
+
+                pannelloOrario.add(panelLezione, c);
+                riga += c.gridheight;
+            }
+
+            while (riga <= maxOrePerGiorno) {
+                JPanel panelVuoto = new JPanel(new BorderLayout());
+                panelVuoto.setBackground(Color.WHITE);
+                panelVuoto.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+
+                c.gridx = giornoIndex;
+                c.gridy = riga;
+                c.gridheight = 1;
+                pannelloOrario.add(panelVuoto, c);
+                riga++;
+            }
+        }
+
+        for (Component comp : pannelloOrario.getComponents()) {
+            if (comp instanceof JPanel) {
+                comp.setPreferredSize(new Dimension(120, 60));
+            }
+        }
+
+        pannelloOrario.revalidate();
+        pannelloOrario.repaint();
+    }
+
+    // Aggiungi questo metodo privato per controllare la durata dell'ora
+    private boolean controllaDurataOra(Lezione lezione, String nuovaDurata, GestoreDati gestoreDati) {
+        // Verifica se la nuova durata è diversa da quella attuale
+        if (lezione.getDurata().equals(nuovaDurata)) {
+            return true; // Nessun cambiamento, sempre valido
+        }
+
+        // Calcola l'orario di fine con la nuova durata
+        String oraFineNuova = calcolaOraFine(lezione.getOraInizio().replace("h", ":"), nuovaDurata);
+
+        // Ottieni tutte le lezioni dello stesso giorno e sezione
+        ArrayList<Lezione> lezioniGiorno = new ArrayList<>();
+        for (Lezione l : gestoreDati.getListaLezioni()) {
+            if (l.getGiorno().equalsIgnoreCase(lezione.getGiorno()) &&
+                    l.getSezione().equalsIgnoreCase(lezione.getSezione())) {
+                lezioniGiorno.add(l);
+            }
+        }
+
+        // Ordina le lezioni per orario di inizio
+        lezioniGiorno.sort((l1, l2) -> l1.getOraInizio().compareTo(l2.getOraInizio()));
+
+        // Verifica sovrapposizioni con la nuova durata
+        for (Lezione altraLezione : lezioniGiorno) {
+            if (altraLezione.getNumero() == lezione.getNumero()) {
+                continue; // Salta la lezione corrente
+            }
+
+            String inizioAltra = altraLezione.getOraInizio().replace("h", ":");
+            String fineAltra = calcolaOraFine(inizioAltra, altraLezione.getDurata());
+
+            // Controlla se c'è sovrapposizione
+            if (orariSovrapposti(lezione.getOraInizio().replace("h", ":"), oraFineNuova, inizioAltra, fineAltra)) {
+                return false; // Sovrapposizione trovata
+            }
+        }
+
+        return true; // Nessuna sovrapposizione
+    }
+
+    // Metodo helper per verificare sovrapposizioni di orari
+    private boolean orariSovrapposti(String inizio1, String fine1, String inizio2, String fine2) {
+        int inizio1Min = convertiInMinuti(inizio1);
+        int fine1Min = convertiInMinuti(fine1);
+        int inizio2Min = convertiInMinuti(inizio2);
+        int fine2Min = convertiInMinuti(fine2);
+
+        return (inizio1Min < fine2Min) && (fine1Min > inizio2Min);
+    }
+
+    // Modifica il metodo modificaLezione per includere il controllo della durata
+    private void modificaLezione(Lezione lezione, GestoreDati gestoreDati, Serializzazione serializzazione) {
+        JDialog dialog = new JDialog((Frame) null, "Modifica Lezione", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.setSize(400, 500);
+        dialog.setLocationRelativeTo(null);
+        dialog.setResizable(false);
+
+        // Pannello principale
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // Materia
+        gbc.gridx = 0; gbc.gridy = 0;
+        mainPanel.add(new JLabel("Materia:"), gbc);
+        gbc.gridx = 1;
+        JTextField materiaField = new JTextField(lezione.getMateria(), 20);
+        mainPanel.add(materiaField, gbc);
+
+        // Docenti
+        gbc.gridx = 0; gbc.gridy = 1;
+        mainPanel.add(new JLabel("Docenti:"), gbc);
+        gbc.gridx = 1;
+        JTextField docentiField = new JTextField(String.join(", ", lezione.getCognomi()), 20);
+        mainPanel.add(docentiField, gbc);
+
+        // Durata
+        gbc.gridx = 0; gbc.gridy = 5;
+        mainPanel.add(new JLabel("Durata:"), gbc);
+        gbc.gridx = 1;
+        String[] durate = {"1h00", "2h00", "3h00"};
+        JComboBox<String> durataCombo = new JComboBox<>(durate);
+        durataCombo.setSelectedItem(lezione.getDurata());
+        mainPanel.add(durataCombo, gbc);
+
+        // Pulsanti
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.setBackground(Color.WHITE);
+
+        JButton salvaButton = new JButton("Salva Modifiche");
+        salvaButton.setBackground(new Color(70, 130, 180));
+        salvaButton.setForeground(Color.WHITE);
+        salvaButton.setFocusPainted(false);
+
+        JButton annullaButton = new JButton("Annulla");
+        annullaButton.setBackground(new Color(220, 80, 60));
+        annullaButton.setForeground(Color.WHITE);
+        annullaButton.setFocusPainted(false);
+
+        buttonPanel.add(salvaButton);
+        buttonPanel.add(annullaButton);
+
+        salvaButton.addActionListener(e -> {
+            if (materiaField.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Inserire una materia", "Errore", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (docentiField.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Inserire almeno un docente", "Errore", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Controlla se la nuova durata è valida
+            String nuovaDurata = (String) durataCombo.getSelectedItem();
+            if (!controllaDurataOra(lezione, nuovaDurata, gestoreDati)) {
+                JOptionPane.showMessageDialog(dialog,
+                        "La nuova durata crea una sovrapposizione con altre lezioni della classe!",
+                        "Errore Durata",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String vecchiaMateria = lezione.getMateria();
+            ArrayList<String> vecchiDocenti = new ArrayList<>(lezione.getCognomi());
+            String vecchiaDurata = lezione.getDurata();
+
+            lezione.setMateria(materiaField.getText().trim());
+
+            // Aggiorna lista docenti
+            ArrayList<String> nuoviDocenti = new ArrayList<>();
+            String[] docentiArray = docentiField.getText().split(",");
+            for (String docente : docentiArray) {
+                nuoviDocenti.add(docente.trim());
+            }
+            if(nuoviDocenti.size() == 1){
+                lezione.setCoDocente("N");
+            }
+            lezione.setCognomi(nuoviDocenti);
+
+            // Aggiorna la durata
+            lezione.setDurata(nuovaDurata);
+
+            // Log delle modifiche
+            StringBuilder logMessage = new StringBuilder("Lezione modificata: ");
+            if (!vecchiaMateria.equals(lezione.getMateria())) {
+                logMessage.append(String.format("Materia: %s -> %s, ", vecchiaMateria, lezione.getMateria()));
+            }
+            if (!vecchiDocenti.equals(nuoviDocenti)) {
+                logMessage.append(String.format("Docenti: %s -> %s, ", vecchiDocenti, nuoviDocenti));
+            }
+            if (!vecchiaDurata.equals(lezione.getDurata())) {
+                logMessage.append(String.format("Durata: %s -> %s", vecchiaDurata, lezione.getDurata()));
+            }
+
+            serializzazione.log(logMessage.toString());
+            serializzazione.salvaDati();
+
+            JOptionPane.showMessageDialog(dialog, "Lezione modificata con successo!", "Successo", JOptionPane.INFORMATION_MESSAGE);
+            dialog.dispose();
+            aggiornaTabella();
+        });
+
+        annullaButton.addActionListener(e -> {
+            aggiornaTabella();
+            dialog.dispose();
+        });
+
+        dialog.add(mainPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private void eliminaLezione(Lezione lezione,GestoreDati gestoreDati,Serializzazione serializzazione) {
+
+        UIManager.put("OptionPane.messageForeground", Color.BLACK);
+        UIManager.put("Button.foreground", Color.BLACK);
+
+        int conferma = JOptionPane.showConfirmDialog(
+                this,
+                "Sei sicuro di voler eliminare la lezione di " + lezione.getMateria() + "?",
+                "Conferma Eliminazione",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        UIManager.put("OptionPane.messageForeground", null);
+        UIManager.put("Button.foreground", null);
+
+        if (conferma == JOptionPane.YES_OPTION) {
+            for (String s : lezione.getCognomi()){
+                Docente docente = gestoreDati.getDocenteByCognome(s);
+                docente.getListaLezioni().remove(lezione);
+            }
+            Classe classe = gestoreDati.getClasseBySezione(lezione.getSezione());
+            classe.getLezioni().remove(lezione);
+            serializzazione.log("Lezione eliminata correttamente" + lezione.getSezione() + ", " + lezione.getMateria() + ", " + lezione.getOraInizio() + ", " + lezione.getGiorno());
+            serializzazione.salvaDati();
+            aggiornaTabella();
+        }
     }
 
     private void aggiornaTabella() {

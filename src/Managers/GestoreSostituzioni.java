@@ -48,7 +48,6 @@ public class GestoreSostituzioni {
         this.sostituzioni = new HashMap<>();
         this.docentiUtilizzatiPerOra = new HashSet<>();
         this.serializzazione = serializzazione;
-
         giornataOdierna = giorno;
 
         if(ora.equals("Tutto il giorno")) {

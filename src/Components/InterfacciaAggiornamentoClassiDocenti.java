@@ -45,9 +45,9 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
     private void inizializzaUI(ArrayList<Classe> classi, ArrayList<Docente> docente) {
 
-        this.setTitle("Gestione Orario Scolastico");
+        this.setTitle("Aggiornamento classi e docenti");
         this.setSize(1280, 700);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setLayout(new BorderLayout(20, 20));
         this.setLocationRelativeTo(null);
         this.getContentPane().setBackground(COLORE_SFONDO);
@@ -76,11 +76,11 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloTitolo.setBackground(COLORE_SFONDO);
         pannelloTitolo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
-        JLabel titolo = new JLabel("GESTIONE ORARIO SCOLASTICO", SwingConstants.CENTER);
+        JLabel titolo = new JLabel("AGGIORNAMENTO CLASSI E DOCENTI", SwingConstants.CENTER);
         titolo.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titolo.setForeground(COLORE_TESTO);
 
-        JLabel sottotitolo = new JLabel("Sistema di gestione orari e sostituzioni", SwingConstants.CENTER);
+        JLabel sottotitolo = new JLabel("", SwingConstants.CENTER);
         sottotitolo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         sottotitolo.setForeground(COLORE_PRIMARIO);
 
@@ -101,11 +101,11 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         JPanel pannelloSinistra = new JPanel(new BorderLayout(15, 15));
         pannelloSinistra.setBackground(COLORE_SFONDO);
 
-
+        // Pannello selezione
         JPanel pannelloSelezione = creaPannelloSelezioneClasse(classi, docente);
         pannelloSinistra.add(pannelloSelezione, BorderLayout.NORTH);
 
-
+        // Pannello orario con TabellaOraria interattiva
         pannelloOrario = new JPanel(new BorderLayout());
         pannelloOrario.setBackground(COLORE_CARTA);
         pannelloOrario.setBorder(BorderFactory.createCompoundBorder(
@@ -113,8 +113,13 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
 
+        // Carica tabella iniziale per la classe selezionata (versione interattiva)
         Classe classeSelezionata = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
-        pannelloOrario.add(new TabellaOraria(classeSelezionata), BorderLayout.CENTER);
+        if (classeSelezionata != null) {
+            TabellaOraria tabella = new TabellaOraria(classeSelezionata, gestoreDati, serializzazione);
+            pannelloOrario.add(tabella, BorderLayout.CENTER);
+        }
+
         pannelloSinistra.add(pannelloOrario, BorderLayout.CENTER);
 
         return pannelloSinistra;
@@ -208,31 +213,11 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         return pannelloSelezione;
     }
 
-    // Aggiungi questa interfaccia interna alla classe
-    private interface AscoltatoreCelleTabella {
-        void onLezioneCliccata(Lezione lezione);
-        void onCellaVuotaCliccata(String giorno, String orario, Object entita);
-    }
-
-    // Sostituisci i metodi aggiornaTabellaClasse e aggiornaTabellaDocente:
     private void aggiornaTabellaClasse() {
         pannelloOrario.removeAll();
         Classe nuovaClasse = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
         if (nuovaClasse != null) {
-            TabellaOrariaInterattiva tabella = new TabellaOrariaInterattiva(
-                    nuovaClasse,
-                    new TabellaOrariaInterattiva.AscoltatoreCelle() {
-                        @Override
-                        public void onLezioneCliccata(Lezione lezione) {
-                            gestisciClickLezione(lezione);
-                        }
-
-                        @Override
-                        public void onCellaVuotaCliccata(String giorno, String orario, Object entita) {
-                            gestisciClickCellaVuota(giorno, orario, entita);
-                        }
-                    }
-            );
+            TabellaOraria tabella = new TabellaOraria(nuovaClasse, gestoreDati, serializzazione);
             pannelloOrario.add(tabella, BorderLayout.CENTER);
         }
         pannelloOrario.revalidate();
@@ -243,127 +228,13 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloOrario.removeAll();
         Docente docenteSelezionato = gestoreDati.getDocenteByCognome((String) comboDocenti.getSelectedItem());
         if (docenteSelezionato != null) {
-            TabellaOrariaInterattiva tabella = new TabellaOrariaInterattiva(
-                    docenteSelezionato,
-                    new TabellaOrariaInterattiva.AscoltatoreCelle() {
-                        @Override
-                        public void onLezioneCliccata(Lezione lezione) {
-                            gestisciClickLezione(lezione);
-                        }
-
-                        @Override
-                        public void onCellaVuotaCliccata(String giorno, String orario, Object entita) {
-                            gestisciClickCellaVuota(giorno, orario, entita);
-                        }
-                    }
-            );
+            TabellaOraria tabella = new TabellaOraria(docenteSelezionato, gestoreDati, serializzazione);
             pannelloOrario.add(tabella, BorderLayout.CENTER);
         }
         pannelloOrario.revalidate();
         pannelloOrario.repaint();
     }
 
-    // Aggiungi questi metodi per gestire gli eventi:
-    private void gestisciClickLezione(Lezione lezione) {
-        // Cambia i colori di UIManager temporaneamente
-        UIManager.put("OptionPane.background", Color.WHITE);
-        UIManager.put("Panel.background", Color.WHITE);
-        UIManager.put("OptionPane.messageForeground", Color.BLACK);
-        UIManager.put("Button.foreground", Color.BLACK);
-
-        int scelta = JOptionPane.showOptionDialog(
-                this,
-                "Cosa vuoi fare con questa lezione?",
-                "Gestione Lezione - " + lezione.getMateria(),
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                new String[]{"Modifica", "Elimina", "Annulla"},
-                "Modifica"
-        );
-
-        // Ripristina i colori originali
-        UIManager.put("OptionPane.messageForeground", null);
-        UIManager.put("Button.foreground", null);
-
-        switch (scelta) {
-            case 0: // Modifica
-                modificaLezione(lezione);
-                break;
-            case 1: // Elimina
-                eliminaLezione(lezione);
-                break;
-        }
-    }
-
-    private void gestisciClickCellaVuota(String giorno, String orario, Object entita) {
-        String tipo = entita instanceof Classe ? "classe" : "docente";
-        String nome = entita instanceof Classe ?
-                ((Classe) entita).getSezione() : ((Docente) entita).getCognome();
-
-        UIManager.put("OptionPane.messageForeground", Color.BLACK);
-        UIManager.put("Button.foreground", Color.BLACK);
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Aggiungi nuova lezione per:\n" +
-                        (tipo.equals("classe") ? "Classe: " : "Docente: ") + nome + "\n" +
-                        "Giorno: " + giorno + "\n" +
-                        "Orario: " + orario,
-                "Nuova Lezione",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-
-        // Ripristina
-        UIManager.put("OptionPane.messageForeground", null);
-        UIManager.put("Button.foreground", null);
-
-        // TODO: Implementare la logica di aggiunta lezione
-        System.out.println("Aggiungi lezione per " + tipo + " " + nome + " il " + giorno + " alle " + orario);
-    }
-
-    private void modificaLezione(Lezione lezione) {
-        UIManager.put("OptionPane.messageForeground", Color.BLACK);
-        UIManager.put("Button.foreground", Color.BLACK);
-
-        // TODO: Implementare modifica lezione
-        JOptionPane.showMessageDialog(this, "Modifica lezione: " + lezione.getMateria());
-
-        // Ripristina
-        UIManager.put("OptionPane.messageForeground", null);
-        UIManager.put("Button.foreground", null);
-    }
-
-    private void eliminaLezione(Lezione lezione) {
-        // Imposta colori per testo nero
-        UIManager.put("OptionPane.messageForeground", Color.BLACK);
-        UIManager.put("Button.foreground", Color.BLACK);
-
-        int conferma = JOptionPane.showConfirmDialog(
-                this,
-                "Sei sicuro di voler eliminare la lezione di " + lezione.getMateria() + "?",
-                "Conferma Eliminazione",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        // Ripristina
-        UIManager.put("OptionPane.messageForeground", null);
-        UIManager.put("Button.foreground", null);
-
-        if (conferma == JOptionPane.YES_OPTION) {
-            // TODO: Implementare eliminazione lezione
-            JOptionPane.showMessageDialog(this, "Lezione eliminata!");
-            aggiornaTabellaCorrente();
-        }
-    }
-
-    private void aggiornaTabellaCorrente() {
-        if (comboClassi.isVisible()) {
-            aggiornaTabellaClasse();
-        } else {
-            aggiornaTabellaDocente();
-        }
-    }
 
     private JPanel creaPannelloDestro() {
         JPanel pannelloDestra = new JPanel(new BorderLayout(0, 20));
@@ -401,16 +272,6 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloDestra.add(pannelloPulsanti, BorderLayout.CENTER);
 
         return pannelloDestra;
-    }
-
-    private void aggiornaTabella() {
-        pannelloOrario.removeAll();
-        Classe nuovaClasse = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
-        if (nuovaClasse != null) {
-            pannelloOrario.add(new TabellaOraria(nuovaClasse), BorderLayout.CENTER);
-        }
-        pannelloOrario.revalidate();
-        pannelloOrario.repaint();
     }
 
     private void personalizzaBottone(JButton bottone, Color coloreSfondo) {
