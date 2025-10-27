@@ -101,11 +101,9 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         JPanel pannelloSinistra = new JPanel(new BorderLayout(15, 15));
         pannelloSinistra.setBackground(COLORE_SFONDO);
 
-        // Pannello selezione
         JPanel pannelloSelezione = creaPannelloSelezioneClasse(classi, docente);
         pannelloSinistra.add(pannelloSelezione, BorderLayout.NORTH);
 
-        // Pannello orario con TabellaOraria interattiva
         pannelloOrario = new JPanel(new BorderLayout());
         pannelloOrario.setBackground(COLORE_CARTA);
         pannelloOrario.setBorder(BorderFactory.createCompoundBorder(
@@ -113,10 +111,9 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
 
-        // Carica tabella iniziale per la classe selezionata (versione interattiva)
         Classe classeSelezionata = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
         if (classeSelezionata != null) {
-            TabellaOraria tabella = new TabellaOraria(classeSelezionata, gestoreDati, serializzazione);
+            TabellaOraria tabella = new TabellaOraria(classeSelezionata, gestoreDati, serializzazione, this::aggiornaTabellaClasse);
             pannelloOrario.add(tabella, BorderLayout.CENTER);
         }
 
@@ -143,7 +140,6 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
 
-        // Pannello per la selezione classe (visibile inizialmente)
         JPanel pannelloSelezioneClasse = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         pannelloSelezioneClasse.setBackground(COLORE_SFONDO);
 
@@ -166,7 +162,6 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloSelezioneClasse.add(labelClasse);
         pannelloSelezioneClasse.add(comboClassi);
 
-        // Pannello per la selezione docente (inizialmente nascosto)
         JPanel pannelloSelezioneDocente = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         pannelloSelezioneDocente.setBackground(COLORE_SFONDO);
 
@@ -188,13 +183,11 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
         pannelloSelezioneDocente.add(labelDocente);
         pannelloSelezioneDocente.add(comboDocenti);
-        pannelloSelezioneDocente.setVisible(false); // Inizialmente nascosto
+        pannelloSelezioneDocente.setVisible(false);
 
-        // Aggiungi entrambi i pannelli al pannello principale
         pannelloSelezione.add(pannelloSelezioneClasse);
         pannelloSelezione.add(pannelloSelezioneDocente);
 
-        // Action Listeners
         comboClassi.addActionListener(a -> aggiornaTabellaClasse());
         comboDocenti.addActionListener(a -> aggiornaTabellaDocente());
 
@@ -217,7 +210,7 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloOrario.removeAll();
         Classe nuovaClasse = gestoreDati.getClasseBySezione((String) comboClassi.getSelectedItem());
         if (nuovaClasse != null) {
-            TabellaOraria tabella = new TabellaOraria(nuovaClasse, gestoreDati, serializzazione);
+            TabellaOraria tabella = new TabellaOraria(nuovaClasse, gestoreDati, serializzazione,this::aggiornaTabellaClasse);
             pannelloOrario.add(tabella, BorderLayout.CENTER);
         }
         pannelloOrario.revalidate();
@@ -228,7 +221,7 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
         pannelloOrario.removeAll();
         Docente docenteSelezionato = gestoreDati.getDocenteByCognome((String) comboDocenti.getSelectedItem());
         if (docenteSelezionato != null) {
-            TabellaOraria tabella = new TabellaOraria(docenteSelezionato, gestoreDati, serializzazione);
+            TabellaOraria tabella = new TabellaOraria(docenteSelezionato, gestoreDati, serializzazione,this::aggiornaTabellaDocente);
             pannelloOrario.add(tabella, BorderLayout.CENTER);
         }
         pannelloOrario.revalidate();

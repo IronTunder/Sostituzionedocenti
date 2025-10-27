@@ -135,9 +135,7 @@ public class InterfacciaDisposizioni extends JFrame {
         docenteSelezionato = gestoreDati.getDocenteByCognome(cognomeDocente);
         if (docenteSelezionato == null) return;
 
-        TabellaOraria tabella = new TabellaOraria(gestoreDati.getDocenteByCognome(docenteSelezionato.getCognome()), "Disposizione", gestoreDati, serializzazione);
-
-        tabella.setCallbackAggiornamento(this::aggiornaDisposizioniDocente);
+        TabellaOraria tabella = new TabellaOraria(gestoreDati.getDocenteByCognome(docenteSelezionato.getCognome()), "Disposizione", gestoreDati, serializzazione, this::aggiornaDisposizioniDocente);
 
         pannelloDisposizioni.add(new JScrollPane(tabella), BorderLayout.CENTER);
 

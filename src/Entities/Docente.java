@@ -12,9 +12,9 @@ public class Docente implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final String cognome;
-    private final ArrayList<Classe> listaClassi;
-    private final ArrayList<Lezione> listaLezioni;
-    private final ArrayList<String> listaMaterie;
+    private ArrayList<Classe> listaClassi;
+    private ArrayList<Lezione> listaLezioni;
+    private ArrayList<String> listaMaterie;
     private int oreDaRecuperare;
 
     public Docente(String cognome) {
@@ -60,6 +60,10 @@ public class Docente implements Serializable {
 
     public void impostaOreDaRecuperare(int ore){
         oreDaRecuperare = ore;
+    }
+
+    public void rimuoviLezione(Lezione lezione) {
+        listaLezioni.remove(lezione);
     }
 
     

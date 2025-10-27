@@ -11,23 +11,30 @@ public class Classe implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private final ArrayList<Lezione> lezioni;
-    private final ArrayList<Docente> docenti;
-    private final String sezione;
-    private final GestoreDati gestore;
+    private ArrayList<Lezione> lezioni;
+    private ArrayList<Docente> docenti;
+    private ArrayList<String> materie;
+    private String sezione;
+    private GestoreDati gestore;
 
     public Classe(String sezione, GestoreDati gestore) {
         this.sezione = Objects.requireNonNull(sezione, "Sezione non può essere null");
         this.gestore = Objects.requireNonNull(gestore, "Gestore non può essere null");
         this.lezioni = new ArrayList<>();
         this.docenti = new ArrayList<>();
+        this.materie = new ArrayList<>();
     }
 
     public void aggiungiLezioneEDocente(Lezione lezione) {
         if (lezione == null || lezioni.contains(lezione)) return;
-
         lezioni.add(lezione);
+        if(!materie.contains(lezione.getMateria()))
+            materie.add(lezione.getMateria());
         aggiungiDocentiDaLezione(lezione);
+    }
+
+    public ArrayList<String> getMaterie() {
+        return materie;
     }
 
     private void aggiungiDocentiDaLezione(Lezione lezione) {
@@ -41,7 +48,15 @@ public class Classe implements Serializable {
         }
     }
 
-    
+    public void aggiungiLezione(Lezione lezione) {
+        if (lezione == null || lezioni.contains(lezione)) return;
+        lezioni.add(lezione);
+    }
+
+    public void rimuoviLezione(Lezione lezione) {
+        lezioni.remove(lezione);
+    }
+
     public ArrayList<Lezione> getLezioniPerGiorno(String giorno) {
         return lezioni.stream()
                 .filter(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno))
