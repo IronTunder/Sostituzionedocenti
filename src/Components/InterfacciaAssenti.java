@@ -272,21 +272,26 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
         String q = stringa == null ? "" : stringa.trim().toLowerCase();
         docentiFiltrati.clear();
 
+        String giornoSelezionato = giorniComboBox.getSelectedItem().toString();
+        String oraSelezionata = oreComboBox.getSelectedItem().toString();
+        boolean tuttoIlGiorno = oraSelezionata.equals("Tutto il giorno");
+
         if (q.isEmpty() || q.equals("cerca per cognome...")) {
             for (Docente d : docenti) {
-                if (d.haLezioneInGiorno(Objects.requireNonNull(giorniComboBox.getSelectedItem()).toString()) && (d.haLezioneInOraEGiorno(Objects.requireNonNull(oreComboBox.getSelectedItem()).toString(),giorniComboBox.getSelectedItem().toString()) && !oreComboBox.getSelectedItem().toString().equals("Tutto il giorno")))
-                {
-                    docentiFiltrati.add(d);
+                if (d.haLezioneInGiorno(giornoSelezionato)) {
+                    if (tuttoIlGiorno || d.haLezioneInOraEGiorno(oraSelezionata, giornoSelezionato)) {
+                        docentiFiltrati.add(d);
+                    }
                 }
             }
         } else {
             for (Docente d : docenti) {
                 if (d.getCognome() != null && d.getCognome().toLowerCase().contains(q)) {
-                    if (d.haLezioneInGiorno(Objects.requireNonNull(giorniComboBox.getSelectedItem()).toString()) && (d.haLezioneInOraEGiorno(Objects.requireNonNull(oreComboBox.getSelectedItem()).toString(),giorniComboBox.getSelectedItem().toString()) && !oreComboBox.getSelectedItem().toString().equals("Tutto il giorno")))
-                    {
-                        docentiFiltrati.add(d);
+                    if (d.haLezioneInGiorno(giornoSelezionato)) {
+                        if (tuttoIlGiorno || d.haLezioneInOraEGiorno(oraSelezionata, giornoSelezionato)) {
+                            docentiFiltrati.add(d);
+                        }
                     }
-
                 }
             }
         }
@@ -300,11 +305,6 @@ public class InterfacciaAssenti extends JFrame implements ActionListener {
                 statoCheckbox.put(docente, checkBox.isSelected());
             }
         }
-    }
-    private void giorno()
-    {
-
-
     }
 
     private void aggiornaLista() {
