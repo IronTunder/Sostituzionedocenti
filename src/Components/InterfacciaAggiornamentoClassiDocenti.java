@@ -262,8 +262,6 @@ public class InterfacciaAggiornamentoClassiDocenti extends JFrame {
 
         bIndietro.addActionListener(e -> {
             dispose();
-            new MenuPrincipale(gestoreDati, serializzazione);
-
         });
 
 
