@@ -489,7 +489,6 @@ public class TabellaOraria extends JPanel {
         int maxOre = 0;
 
         for (String giorno : giorni) {
-            // Filtra le lezioni per il giorno corrente
             ArrayList<Lezione> lezioniGiorno = new ArrayList<>();
             for (Lezione lezione : lezioni) {
                 if (lezione.getGiorno().equalsIgnoreCase(giorno)) {
@@ -497,12 +496,10 @@ public class TabellaOraria extends JPanel {
                 }
             }
 
-            // Se non ci sono lezioni, ore libere = 0
             if (lezioniGiorno.isEmpty()) {
                 continue;
             }
 
-            // Ordina le lezioni per orario di inizio
             lezioniGiorno.sort((l1, l2) -> {
                 String ora1 = l1.getOraInizio().replace("h", ":");
                 String ora2 = l2.getOraInizio().replace("h", ":");
@@ -511,7 +508,6 @@ public class TabellaOraria extends JPanel {
 
             int oreLibere = 0;
 
-            // Calcola ore libere PRIMA della prima lezione (dalle 8:00 alla prima lezione)
             String primaLezioneInizio = lezioniGiorno.get(0).getOraInizio().replace("h", ":");
             int primaLezioneInizioMinuti = convertiInMinuti(primaLezioneInizio);
             int inizioGiornataMinuti = convertiInMinuti("08:00"); // Inizio giornata scolastica
@@ -520,7 +516,6 @@ public class TabellaOraria extends JPanel {
                 oreLibere += (primaLezioneInizioMinuti - inizioGiornataMinuti) / 60;
             }
 
-            // Calcola ore libere TRA le lezioni
             for (int i = 0; i < lezioniGiorno.size() - 1; i++) {
                 Lezione lezioneCorrente = lezioniGiorno.get(i);
                 Lezione lezioneSuccessiva = lezioniGiorno.get(i + 1);
@@ -539,7 +534,6 @@ public class TabellaOraria extends JPanel {
                 }
             }
 
-            // Calcola ore libere DOPO l'ultima lezione (dall'ultima lezione alle 14:00)
             String ultimaLezioneFine = calcolaOraFine(
                     lezioniGiorno.get(lezioniGiorno.size() - 1).getOraInizio().replace("h", ":"),
                     lezioniGiorno.get(lezioniGiorno.size() - 1).getDurata()
@@ -551,24 +545,20 @@ public class TabellaOraria extends JPanel {
                 oreLibere += (fineGiornataMinuti - ultimaLezioneFineMinuti) / 60;
             }
 
-            // Somma la durata totale delle lezioni
             int durataLezioni = 0;
             for (Lezione lezione : lezioniGiorno) {
                 durataLezioni += (int) Double.parseDouble(lezione.getDurata().replace('h', '.'));
             }
 
-            // Ore totali = ore libere + durata lezioni
             int oreTotali = oreLibere + durataLezioni;
 
             if (oreTotali > maxOre) {
                 maxOre = oreTotali;
             }
         }
-        System.out.println(maxOre);
         return Math.min(maxOre, 8);
     }
 
-    // Metodo helper per calcolare l'ora di fine di una lezione
     private String calcolaOraFine(String orarioInizio, String durata) {
         int inizioMinuti = convertiInMinuti(orarioInizio);
         int durataMinuti = (int)(Double.parseDouble(durata.replace('h', '.')) * 60);
@@ -579,7 +569,6 @@ public class TabellaOraria extends JPanel {
         return String.format("%02d:%02d", ore, minuti);
     }
 
-    // Metodo helper per convertire un orario in minuti
     private int convertiInMinuti(String orario) {
         try {
             String[] parti = orario.split(":");
