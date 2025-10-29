@@ -188,15 +188,7 @@ public class TabellaOraria extends JPanel {
         int maxOrePerGiorno = calcolaMaxOrePerGiorno(lezioni, giorni);
 
         for (int i = 0; i < giorni.length; i++) {
-            JLabel labelGiorno = new JLabel(giorni[i], SwingConstants.CENTER);
-            labelGiorno.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            labelGiorno.setOpaque(true);
-            labelGiorno.setBackground(new Color(70, 130, 180));
-            labelGiorno.setForeground(Color.WHITE);
-            labelGiorno.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Color.BLACK),
-                    BorderFactory.createEmptyBorder(8, 5, 8, 5)
-            ));
+            JLabel labelGiorno = getJLabel(giorni[i]);
             c.gridx = i;
             c.gridy = 0;
             c.gridheight = 1;
@@ -248,6 +240,19 @@ public class TabellaOraria extends JPanel {
 
         pannelloOrario.revalidate();
         pannelloOrario.repaint();
+    }
+
+    private static JLabel getJLabel(String giorni) {
+        JLabel labelGiorno = new JLabel(giorni, SwingConstants.CENTER);
+        labelGiorno.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        labelGiorno.setOpaque(true);
+        labelGiorno.setBackground(new Color(70, 130, 180));
+        labelGiorno.setForeground(Color.WHITE);
+        labelGiorno.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                BorderFactory.createEmptyBorder(8, 5, 8, 5)
+        ));
+        return labelGiorno;
     }
 
     private void ricreaTabellaDocenteFiltrata(Docente docente, String materiaFilter, GestoreDati gestoreDati, Serializzazione serializzazione) {

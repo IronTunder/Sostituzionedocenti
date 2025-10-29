@@ -9,14 +9,14 @@ public class Lezione implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private int numero;
+    private final int numero;
     private String durata;
     private String materia;
     private ArrayList<String> cognomi;
-    private String sezione;
+    private final String sezione;
     private String coDocente;
-    private String giorno;
-    private String oraInizio;
+    private final String giorno;
+    private final String oraInizio;
 
     public Lezione(int numero, String durata, String materia, String cognomi, String classe, String coDocente, String giorno, String oraInizio) {
         this.numero = numero;

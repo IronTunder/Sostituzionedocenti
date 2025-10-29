@@ -12,9 +12,9 @@ public class Docente implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final String cognome;
-    private ArrayList<Classe> listaClassi;
-    private ArrayList<Lezione> listaLezioni;
-    private ArrayList<String> listaMaterie;
+    private final ArrayList<Classe> listaClassi;
+    private final ArrayList<Lezione> listaLezioni;
+    private final ArrayList<String> listaMaterie;
     private int oreDaRecuperare;
 
     public Docente(String cognome) {

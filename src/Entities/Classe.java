@@ -12,11 +12,11 @@ public class Classe implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private ArrayList<Lezione> lezioni;
-    private ArrayList<Docente> docenti;
-    private ArrayList<String> materie;
-    private String sezione;
-    private GestoreDati gestore;
+    private final ArrayList<Lezione> lezioni;
+    private final ArrayList<Docente> docenti;
+    private final ArrayList<String> materie;
+    private final String sezione;
+    private final GestoreDati gestore;
 
     public Classe(String sezione, GestoreDati gestore) {
         this.sezione = Objects.requireNonNull(sezione, "Sezione non può essere null");
