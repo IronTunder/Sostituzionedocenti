@@ -12,7 +12,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class GestoreSostituzioni {
@@ -267,7 +266,7 @@ public class GestoreSostituzioni {
 
     private Docente trovaDocenteOreDaRecuperare(Lezione lezione, String orario) {
       for (Docente docente : gestoreDati.getListaDocenti()) {
-          if(!docente.eInServizio(orario) && isNotAssente(docente) && nonEGiaUsatoAllaStessaOra(docente,orario) && docente.getOreDaRecuperare() > 0){
+          if(docente.nonEInServizio(orario, lezione.getGiorno()) && isNotAssente(docente) && nonEGiaUsatoAllaStessaOra(docente,orario) && docente.getOreDaRecuperare() > 0){
             serializzazione.log("Trovato docente con ore da recuperare " + docente.getCognome());
             docente.impostaOreDaRecuperare(docente.getOreDaRecuperare() - 1);
             serializzazione.salvaDati();

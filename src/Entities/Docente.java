@@ -1,6 +1,6 @@
 package Entities;
 
-import Managers.GestoreDati;
+import Managers.OrarioUtility;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -24,13 +24,12 @@ public class Docente implements Serializable {
         this.listaMaterie = new ArrayList<>();
     }
 
-    
     public String getCognome() { return cognome; }
-
     public ArrayList<Classe> getListaClassi() { return new ArrayList<>(listaClassi); }
     public ArrayList<String> getListaMaterie() { return new ArrayList<>(listaMaterie); }
+    public int getOreDaRecuperare() { return oreDaRecuperare; }
+    public ArrayList<Lezione> getListaLezioni() { return listaLezioni; }
 
-    
     public void aggiungiClasse(Classe classe) {
         if (classe != null && !listaClassi.contains(classe)) {
             listaClassi.add(classe);
@@ -49,16 +48,17 @@ public class Docente implements Serializable {
         }
     }
 
-    public boolean eInServizio(String orario){
-        for (Lezione lezione : listaLezioni) {
-            if (lezione.getOraInizio().equals(orario)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean nonEInServizio(String giorno, String orario) {
+        return listaLezioni.stream()
+                .filter(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno) &&
+                        !lezione.getMateria().equalsIgnoreCase("Disposizione"))
+                .noneMatch(lezione -> {
+                    String oraFine = OrarioUtility.calcolaOraFine(lezione.getOraInizio(), lezione.getDurata());
+                    return OrarioUtility.isOrarioNellIntervallo(orario, lezione.getOraInizio(), oraFine);
+                });
     }
 
-    public void impostaOreDaRecuperare(int ore){
+    public void impostaOreDaRecuperare(int ore) {
         oreDaRecuperare = ore;
     }
 
@@ -66,7 +66,6 @@ public class Docente implements Serializable {
         listaLezioni.remove(lezione);
     }
 
-    
     public void rimuoviClasse(Classe classe) {
         listaClassi.remove(classe);
     }
@@ -74,7 +73,7 @@ public class Docente implements Serializable {
     public void rimuoviMateria(String materia) {
         listaMaterie.remove(materia);
     }
-    
+
     public boolean insegnaInClasse(String sezione) {
         return listaClassi.stream()
                 .anyMatch(classe -> classe.getSezione().equals(sezione));
@@ -83,11 +82,6 @@ public class Docente implements Serializable {
     public boolean haLezioneInGiorno(String giorno) {
         return listaLezioni.stream()
                 .anyMatch(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno));
-    }
-
-    public boolean haLezioneInOraEGiorno(String ora, String giorno){
-        return listaLezioni.stream()
-                .anyMatch(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno) && lezione.getOraInizio().equalsIgnoreCase(ora));
     }
 
     public boolean insegnaMateria(String materia) {
@@ -99,14 +93,6 @@ public class Docente implements Serializable {
                 .anyMatch(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno) &&
                         lezione.getOraInizio().equals(oraInizio) &&
                         lezione.getMateria().equalsIgnoreCase("Disposizione"));
-    }
-
-    private final ArrayList<String> disposizioni = new ArrayList<>();
-
-    public int getOreDaRecuperare() {return oreDaRecuperare;}
-
-    public ArrayList<Lezione> getListaLezioni() {
-        return listaLezioni;
     }
 
     @Override

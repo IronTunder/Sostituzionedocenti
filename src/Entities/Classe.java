@@ -1,6 +1,7 @@
 package Entities;
 
 import Managers.GestoreDati;
+import Managers.OrarioUtility;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -33,17 +34,26 @@ public class Classe implements Serializable {
         aggiungiDocentiDaLezione(lezione);
     }
 
-    public ArrayList<String> getMaterie() {
-        return materie;
+    public boolean nonHaLezione(String giorno, String orario) {
+        return lezioni.stream()
+                .filter(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno))
+                .noneMatch(lezione -> {
+                    String oraFine = OrarioUtility.calcolaOraFine(lezione.getOraInizio(), lezione.getDurata());
+                    return OrarioUtility.isOrarioNellIntervallo(orario, lezione.getOraInizio(), oraFine);
+                });
     }
+
+    public ArrayList<String> getMaterie() { return materie; }
 
     private void aggiungiDocentiDaLezione(Lezione lezione) {
         for (String cognome : lezione.getCognomi()) {
             Docente docente = gestore.getDocenteByCognome(cognome);
-            if (docente != null && !docenti.contains(docente)) {
-                docenti.add(docente);
-                docente.aggiungiClasse(this);
+            if (docente != null) {
                 docente.aggiungiMateria(lezione.getMateria());
+                if(!docenti.contains(docente)){
+                    docenti.add(docente);
+                    docente.aggiungiClasse(this);
+                }
             }
         }
     }
@@ -61,7 +71,6 @@ public class Classe implements Serializable {
         return lezioni.stream()
                 .filter(lezione -> lezione.getGiorno().equalsIgnoreCase(giorno))
                 .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-
     }
 
     public ArrayList<Docente> getDocentiPerMateria(String materia) {
@@ -75,7 +84,6 @@ public class Classe implements Serializable {
                 .anyMatch(docente -> docente.getCognome().equals(cognomeDocente));
     }
 
-    
     public ArrayList<Lezione> getLezioni() { return new ArrayList<>(lezioni); }
     public String getSezione() { return sezione; }
     public ArrayList<Docente> getDocenti() { return new ArrayList<>(docenti); }
@@ -87,7 +95,6 @@ public class Classe implements Serializable {
         Classe classe = (Classe) obj;
         return sezione.equals(classe.sezione);
     }
-
 
     @Override
     public String toString() {

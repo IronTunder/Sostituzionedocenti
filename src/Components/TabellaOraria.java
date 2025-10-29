@@ -76,29 +76,10 @@ public class TabellaOraria extends JPanel {
         this.add(scrollPane, BorderLayout.CENTER);
     }
 
-    public TabellaOraria(Docente docente, GestoreDati gestoreDati, Serializzazione serializzazione, Runnable callbackAggiornamento) {
-        setLayout(new BorderLayout());
-        this.callbackAggiornamento = callbackAggiornamento;
-        JLabel titolo = new JLabel("Orario del docente: " + docente.getCognome(), SwingConstants.CENTER);
-        titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        titolo.setForeground(new Color(50, 50, 70));
-        this.add(titolo, BorderLayout.NORTH);
-
-        pannelloOrario = new JPanel();
-        pannelloOrario.setLayout(new GridBagLayout());
-        pannelloOrario.setBackground(Color.WHITE);
-        // TODO RICREA TABELLA DOCENTE INTERATTIVA
-        JScrollPane scrollPane = new JScrollPane(pannelloOrario);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        this.add(scrollPane, BorderLayout.CENTER);
-    }
-
     public TabellaOraria(Docente docente, String materiaFilter, GestoreDati gestoreDati, Serializzazione serializzazione, Runnable callbackAggiornamento) {
         setLayout(new BorderLayout());
         this.callbackAggiornamento = callbackAggiornamento;
 
-        ArrayList<Lezione> lezioni = docente.getListaLezioni();
         JLabel titolo = new JLabel("Orario del docente: " + docente.getCognome(), SwingConstants.CENTER);
         titolo.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titolo.setForeground(new Color(50, 50, 70));
@@ -612,8 +593,9 @@ public class TabellaOraria extends JPanel {
             String materiaSelezionata = (String) materiaCombo.getSelectedItem();
 
             if (materiaSelezionata != null) {
-                ArrayList<Docente> docentiDisponibili = getDocentiPerMateriaDisponibili(
-                        materiaSelezionata, giorno, oraInizio,gestoreDati);
+                ArrayList<Docente> docentiDisponibili = getDocentiPerMateriaDisponibili(materiaSelezionata, giorno, oraInizio,gestoreDati);
+
+                System.out.println(docentiDisponibili);
 
                 for (Docente docente : docentiDisponibili) {
                     JCheckBox checkBox = new JCheckBox(docente.getCognome());
@@ -707,13 +689,13 @@ public class TabellaOraria extends JPanel {
 
     private ArrayList<Docente> getDocentiPerMateriaDisponibili(String materia, String giorno, String oraInizio, GestoreDati gestoreDati) {
         ArrayList<Docente> docentiDisponibili = new ArrayList<>();
-        System.out.println(oraInizio);
         for (Docente docente : gestoreDati.getListaDocenti()) {
-            if (docente.insegnaMateria(materia) && !docente.haLezioneInOraEGiorno(giorno, oraInizio)) {
-                docentiDisponibili.add(docente);
+            if (docente.insegnaMateria(materia)) {
+                if(docente.nonEInServizio(giorno, oraInizio)){
+                    docentiDisponibili.add(docente);
+                }
             }
         }
-
         return docentiDisponibili;
     }
 

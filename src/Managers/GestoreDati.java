@@ -91,13 +91,6 @@ public class GestoreDati implements Serializable {
                 .findFirst()
                 .orElse(null);
     }
-
-    public Lezione getLezioneByNumero(int numero) {
-        return listaLezioni.stream()
-                .filter(lezione -> lezione.getNumero() == numero)
-                .findFirst()
-                .orElse(null);
-    }
     
     public boolean esisteClasse(String sezione) {
         return listaClassi.stream().anyMatch(classe -> classe.getSezione().equals(sezione));
@@ -105,12 +98,6 @@ public class GestoreDati implements Serializable {
 
     public boolean esisteDocente(String cognome) {
         return listaDocenti.stream().anyMatch(docente -> docente.getCognome().equals(cognome));
-    }
-
-    public ArrayList<Lezione> getLezioniPerClasse(String sezione) {
-        return listaLezioni.stream()
-                .filter(lezione -> lezione.getSezione().equals(sezione))
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
     
     public ArrayList<Docente> getListaDocenti() {

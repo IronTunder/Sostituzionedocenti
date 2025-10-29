@@ -27,9 +27,8 @@ public class Lezione implements Serializable {
         this.coDocente = coDocente;
         this.giorno = giorno;
         this.oraInizio = oraInizio.replace("h", ":");
-
     }
-    
+
     public int getNumero() { return numero; }
     public String getDurata() { return durata; }
     public String getMateria() { return materia; }
@@ -39,21 +38,10 @@ public class Lezione implements Serializable {
     public String getGiorno() { return giorno; }
     public String getOraInizio() { return oraInizio; }
 
-    public void setMateria(String materia) {
-        this.materia = materia;
-    }
-
-    public void setCognomi(ArrayList<String> cognomi) {
-        this.cognomi = cognomi;
-    }
-
-    public void setDurata(String durata) {
-        this.durata = durata;
-    }
-
-    public void setCoDocente(String coDocente) {
-        this.coDocente = coDocente;
-    }
+    public void setMateria(String materia) { this.materia = materia; }
+    public void setCognomi(ArrayList<String> cognomi) { this.cognomi = cognomi; }
+    public void setDurata(String durata) { this.durata = durata; }
+    public void setCoDocente(String coDocente) { this.coDocente = coDocente; }
 
     private ArrayList<String> dividiCognomi(String cognomi) {
         if (cognomi == null || cognomi.trim().isEmpty()) {
@@ -71,13 +59,8 @@ public class Lezione implements Serializable {
         return "2h".equals(durata) || "2.0".equals(durata);
     }
 
-    public boolean insegnaNellaLezione(String cognomeDocente){
-        for (String s : cognomi) {
-            if (s.equalsIgnoreCase(cognomeDocente)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean insegnaNellaLezione(String cognomeDocente) {
+        return cognomi.stream().anyMatch(s -> s.equalsIgnoreCase(cognomeDocente));
     }
 
     @Override

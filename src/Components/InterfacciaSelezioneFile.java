@@ -12,34 +12,20 @@ import java.io.File;
 import java.io.IOException;
 
 public class InterfacciaSelezioneFile extends JFrame {
-    
+
     private final Color COLORE_SFONDO = new Color(248, 250, 252);
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
     private final Color COLORE_SECONDARIO = new Color(46, 139, 87);
-    private final Color COLORE_TESTO = new Color(0, 0, 0);
     private final GestoreDati gestoreDati;
     private final Serializzazione serializzazione;
 
     public InterfacciaSelezioneFile(GestoreDati gestoreDati, Serializzazione serializzazione) throws IOException {
         this.gestoreDati = gestoreDati;
         this.serializzazione = serializzazione;
-        inizializzaLookAndFeel();
         inizializzaUI();
     }
 
-    private void inizializzaLookAndFeel() {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {}
-    }
-
     private void inizializzaUI() {
-        configuraFrame();
-        aggiungiComponentiUI();
-        this.setVisible(true);
-    }
-
-    private void configuraFrame() {
         this.setTitle("Gestione Orario Scolastico - Avvio");
         this.setSize(500, 300);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -47,23 +33,21 @@ public class InterfacciaSelezioneFile extends JFrame {
         this.setLocationRelativeTo(null);
         this.setResizable(false);
         this.getContentPane().setBackground(COLORE_SFONDO);
-    }
+        try{
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }catch (Exception e){
 
-    private void aggiungiComponentiUI() {
-        
+        }
         JPanel pannelloPrincipale = new JPanel(new BorderLayout(0, 20));
         pannelloPrincipale.setBackground(COLORE_SFONDO);
         pannelloPrincipale.setBorder(new EmptyBorder(40, 50, 40, 50));
         this.add(pannelloPrincipale, BorderLayout.CENTER);
 
-        
         pannelloPrincipale.add(creaHeader(), BorderLayout.NORTH);
-
-        
         pannelloPrincipale.add(creaIstruzioni(), BorderLayout.CENTER);
-
-        
         pannelloPrincipale.add(creaPannelloPulsanti(), BorderLayout.SOUTH);
+
+        this.setVisible(true);
     }
 
     private JPanel creaHeader() {
@@ -74,10 +58,9 @@ public class InterfacciaSelezioneFile extends JFrame {
         titolo.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titolo.setForeground(COLORE_PRIMARIO);
 
-        JLabel sottotitolo = new JLabel("Seleziona un file CSV per iniziare",
-                SwingConstants.CENTER);
+        JLabel sottotitolo = new JLabel("Seleziona un file CSV per iniziare", SwingConstants.CENTER);
         sottotitolo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        sottotitolo.setForeground(COLORE_TESTO);
+        sottotitolo.setForeground(Color.BLACK);
         sottotitolo.setBorder(new EmptyBorder(10, 0, 0, 0));
 
         header.add(titolo, BorderLayout.NORTH);
@@ -101,7 +84,7 @@ public class InterfacciaSelezioneFile extends JFrame {
     private void aggiungiIstruzione(JPanel panel, String testo) {
         JLabel istruzione = new JLabel(testo);
         istruzione.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        istruzione.setForeground(COLORE_TESTO);
+        istruzione.setForeground(Color.BLACK);
         panel.add(istruzione);
     }
 
@@ -113,7 +96,6 @@ public class InterfacciaSelezioneFile extends JFrame {
         JButton pulsanteUscita = creaPulsante("ESCI", COLORE_PRIMARIO);
         JButton pulsanteSeleziona = creaPulsante("SELEZIONA FILE", COLORE_SECONDARIO);
 
-        
         pulsanteUscita.addActionListener(e -> confermaUscita());
         pulsanteSeleziona.addActionListener(e -> apriSelettoreFile());
 
@@ -126,30 +108,26 @@ public class InterfacciaSelezioneFile extends JFrame {
     private JButton creaPulsante(String testo, Color colore) {
         JButton pulsante = new JButton(testo);
         pulsante.setPreferredSize(new Dimension(160, 40));
-        personalizzaBottone(pulsante, colore);
-        return pulsante;
-    }
-
-    private void personalizzaBottone(JButton bottone, Color coloreSfondo) {
-        bottone.setFocusPainted(false);
-        bottone.setBackground(coloreSfondo);
-        bottone.setForeground(Color.BLACK);
-        bottone.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        bottone.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(coloreSfondo.darker(), 1),
+        pulsante.setFocusPainted(false);
+        pulsante.setBackground(colore);
+        pulsante.setForeground(Color.BLACK);
+        pulsante.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        pulsante.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(colore.darker(), 1),
                 BorderFactory.createEmptyBorder(8, 16, 8, 16)
         ));
-        bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        pulsante.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        
-        bottone.addMouseListener(new java.awt.event.MouseAdapter() {
+        pulsante.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                bottone.setBackground(coloreSfondo.brighter());
+                pulsante.setBackground(colore.brighter());
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                bottone.setBackground(coloreSfondo);
+                pulsante.setBackground(colore);
             }
         });
+
+        return pulsante;
     }
 
     private void confermaUscita() {
@@ -169,9 +147,7 @@ public class InterfacciaSelezioneFile extends JFrame {
     private void apriSelettoreFile() {
         JFileChooser selettoreFile = new JFileChooser();
         selettoreFile.setDialogTitle("Seleziona il file CSV dell'orario");
-        selettoreFile.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-                "File CSV (*.csv)", "csv"));
-
+        selettoreFile.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("File CSV (*.csv)", "csv"));
         selettoreFile.setCurrentDirectory(new File(System.getProperty("user.home")));
 
         int risultato = selettoreFile.showOpenDialog(this);
@@ -185,27 +161,21 @@ public class InterfacciaSelezioneFile extends JFrame {
     private void elaboraFileSelezionato(File file) {
         try {
             LettoreCSV lettoreCSV = new LettoreCSV();
-            lettoreCSV.leggiFile(file.getAbsolutePath(), gestoreDati,serializzazione);
+            lettoreCSV.leggiFile(file.getAbsolutePath(), gestoreDati, serializzazione);
             serializzazione.salvaDati();
             avviaInterfacciaPrincipale();
         } catch (IOException | CsvException ex) {
-            gestisciErroreCaricamento(ex);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Errore durante il caricamento del file:\n" + ex.getMessage(),
+                    "Errore di Caricamento",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
     private void avviaInterfacciaPrincipale() {
         this.dispose();
-        SwingUtilities.invokeLater(() -> new MenuPrincipale(gestoreDati,serializzazione));
+        SwingUtilities.invokeLater(() -> new MenuPrincipale(gestoreDati, serializzazione));
     }
-
-    private void gestisciErroreCaricamento(Exception ex) {
-        JOptionPane.showMessageDialog(
-                this,
-                "Errore durante il caricamento del file:\n" + ex.getMessage(),
-                "Errore di Caricamento",
-                JOptionPane.ERROR_MESSAGE
-        );
-        ex.printStackTrace();
-    }
-
 }

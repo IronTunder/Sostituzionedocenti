@@ -19,86 +19,91 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
     private final Color COLORE_SFONDO = new Color(255, 255, 255);
     private final Color COLORE_PRIMARIO = new Color(70, 130, 180);
     private final Color COLORE_TESTO = new Color(0, 0, 0);
-    private final Color COLORE_BORDO = new Color(200, 200, 200);
-    private final Color COLORE_BORDO_FOCUS = new Color(70, 130, 180);
 
     private final ArrayList<Docente> docenti;
     private final ArrayList<Docente> docentiFiltrati;
-
     private final ArrayList<JTextField> oreFields = new ArrayList<>();
-
     private final Map<Docente, Integer> oreAssegnate = new HashMap<>();
+    private final Serializzazione serializzazione;
 
-    private final JPanel panelCentro;
+    private JPanel panelCentro;
+
     private final JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
     private final JLabel conteggioLabel = new JLabel("Docenti con ore > 0: 0");
-    private final JTextField campoRicerca;
+    private JTextField campoRicerca;
 
     public InterfacciaGestioneOreRecupero(GestoreDati gestoreDati, Serializzazione serializzazione) {
+        this.docenti = new ArrayList<>(gestoreDati.getListaDocenti());
+        this.docentiFiltrati = new ArrayList<>(docenti);
+        this.serializzazione = serializzazione;
+
+        for (Docente docente : docenti) {
+            oreAssegnate.put(docente, docente.getOreDaRecuperare());
+        }
+
+        configuraUI();
+        aggiornaLista();
+        this.setVisible(true);
+    }
+
+    private void configuraUI() {
         this.setTitle("Interfaccia gestione ore recupero");
         this.setSize(700, 900);
         this.setLocationRelativeTo(null);
         this.setLayout(new BorderLayout(0, 20));
         this.getContentPane().setBackground(COLORE_SFONDO);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        try{
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }catch (Exception e){
 
-        this.docenti = new ArrayList<>(gestoreDati.getListaDocenti());
-        this.docentiFiltrati = new ArrayList<>(docenti);
-
-        for (Docente docente : docenti) {
-            oreAssegnate.put(docente, docente.getOreDaRecuperare());
         }
+        this.add(creaPanelNord(), BorderLayout.NORTH);
+        this.add(creaScrollPane(), BorderLayout.CENTER);
+        this.add(creaPanelSud(serializzazione), BorderLayout.SOUTH);
+    }
 
+    private JPanel creaPanelNord() {
         JPanel panelNord = new JPanel(new BorderLayout());
         panelNord.setBackground(COLORE_SFONDO);
         panelNord.setBorder(new EmptyBorder(20, 40, 20, 40));
-        this.add(panelNord, BorderLayout.NORTH);
 
         JLabel titolo = new JLabel("Ore recupero", SwingConstants.CENTER);
         titolo.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titolo.setForeground(COLORE_PRIMARIO);
         titolo.setBorder(new EmptyBorder(0, 0, 20, 0));
         panelNord.add(titolo, BorderLayout.NORTH);
+        panelNord.add(creaPanelRicerca(), BorderLayout.CENTER);
 
+        return panelNord;
+    }
+
+    private JPanel creaPanelRicerca() {
         JPanel panelRicerca = new JPanel(new BorderLayout(10, 0));
         panelRicerca.setBackground(COLORE_SFONDO);
-        panelRicerca.setBorder(new EmptyBorder(0, 0, 0, 0));
 
         campoRicerca = new JTextField();
         campoRicerca.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        campoRicerca.setForeground(COLORE_TESTO);
         campoRicerca.setBackground(Color.WHITE);
         campoRicerca.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(COLORE_BORDO, 1),
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
                 BorderFactory.createEmptyBorder(10, 15, 10, 40)
         ));
         campoRicerca.setPreferredSize(new Dimension(300, 40));
         campoRicerca.setText("Cerca per cognome...");
         campoRicerca.setForeground(Color.GRAY);
 
-        JButton cancellaRicerca = new JButton("X");
-        cancellaRicerca.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        cancellaRicerca.setForeground(Color.GRAY);
-        cancellaRicerca.setBackground(Color.WHITE);
-        cancellaRicerca.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        cancellaRicerca.setFocusPainted(false);
-        cancellaRicerca.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        cancellaRicerca.setVisible(false);
-
-        JPanel panelRicercaInterno = new JPanel(new BorderLayout());
-        panelRicercaInterno.setBackground(Color.WHITE);
-        panelRicercaInterno.add(cancellaRicerca, BorderLayout.EAST);
-
-        campoRicerca.setLayout(new BorderLayout());
-        campoRicerca.add(panelRicercaInterno, BorderLayout.EAST);
-
+        configuraCampoRicerca();
         panelRicerca.add(campoRicerca, BorderLayout.CENTER);
-        panelNord.add(panelRicerca, BorderLayout.CENTER);
 
+        return panelRicerca;
+    }
+
+    private void configuraCampoRicerca() {
         campoRicerca.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 campoRicerca.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(COLORE_BORDO_FOCUS, 2),
+                        BorderFactory.createLineBorder(COLORE_PRIMARIO, 2),
                         BorderFactory.createEmptyBorder(9, 14, 9, 39)
                 ));
                 if (campoRicerca.getText().equals("Cerca per cognome...")) {
@@ -109,62 +114,24 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
 
             public void focusLost(java.awt.event.FocusEvent evt) {
                 campoRicerca.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(COLORE_BORDO, 1),
+                        BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
                         BorderFactory.createEmptyBorder(10, 15, 10, 40)
                 ));
                 if (campoRicerca.getText().isEmpty()) {
                     campoRicerca.setText("Cerca per cognome...");
                     campoRicerca.setForeground(Color.GRAY);
-                    cancellaRicerca.setVisible(false);
                 }
             }
         });
 
         campoRicerca.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                aggiornaRicerca();
-            }
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                aggiornaRicerca();
-            }
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                aggiornaRicerca();
-            }
-
-            private void aggiornaRicerca() {
-                String testo = campoRicerca.getText();
-                if (!testo.equals("Cerca per cognome...")) {
-                    cancellaRicerca.setVisible(!testo.isEmpty());
-                    filtra(testo);
-                }
-            }
+            public void insertUpdate(DocumentEvent e) { aggiornaRicerca(); }
+            public void removeUpdate(DocumentEvent e) { aggiornaRicerca(); }
+            public void changedUpdate(DocumentEvent e) { aggiornaRicerca(); }
         });
+    }
 
-        campoRicerca.addActionListener(this);
-
-        cancellaRicerca.addActionListener(e -> {
-            campoRicerca.setText("");
-            campoRicerca.setForeground(Color.GRAY);
-            campoRicerca.setText("Cerca per cognome...");
-            cancellaRicerca.setVisible(false);
-            filtra("");
-            campoRicerca.requestFocus();
-        });
-
-        cancellaRicerca.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                cancellaRicerca.setForeground(COLORE_PRIMARIO);
-                cancellaRicerca.setBackground(new Color(240, 240, 240));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                cancellaRicerca.setForeground(Color.GRAY);
-                cancellaRicerca.setBackground(Color.WHITE);
-            }
-        });
-
+    private JScrollPane creaScrollPane() {
         panelCentro = new JPanel();
         panelCentro.setBackground(COLORE_SFONDO);
         panelCentro.setBorder(new EmptyBorder(20, 60, 20, 60));
@@ -179,45 +146,19 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setPreferredSize(new Dimension(700, 300));
 
-        this.add(scrollPane, BorderLayout.CENTER);
+        return scrollPane;
+    }
 
+    private JPanel creaPanelSud(Serializzazione serializzazione) {
         pannelloBottoni.setBackground(COLORE_SFONDO);
         pannelloBottoni.setBorder(new EmptyBorder(10, 0, 20, 0));
 
         JButton bottoneIndietro = creaPulsante("INDIETRO", COLORE_PRIMARIO);
-        Color COLORE_SECONDARIO = new Color(46, 139, 87);
-        JButton bottoneConferma = creaPulsante("CONFERMA", COLORE_SECONDARIO);
+        JButton bottoneConferma = creaPulsante("CONFERMA", new Color(46, 139, 87));
 
         bottoneIndietro.addActionListener(e -> this.dispose());
-
-        bottoneConferma.addActionListener(e -> {
-            int selezionati = contaSelezionati();
-            if (selezionati > 0) {
-                Object[] options = {"<html><font color=#000000>Conferma</font></html>", "<html><font color=#000000>Indietro</font></html>"};
-                int scelta = JOptionPane.showOptionDialog(
-                        this,
-                        "Confermi il numero di ore assegnato a ogni docente " + selezionati + " docenti?",
-                        "Conferma",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE,
-                        null,
-                        options,
-                        options[0]
-                );
-                if (scelta == JOptionPane.YES_OPTION) {
-                    for(Docente docente : docenti){
-                        int oreDirecupero = oreAssegnate.get(docente);
-                        docente.impostaOreDaRecuperare(oreDirecupero);
-                    }
-                    serializzazione.salvaDati();
-                    dispose();
-                }
-            } else {
-                mostraMessaggioErrore("Nessun docente selezionato (ore > 0).");
-            }
-        });
+        bottoneConferma.addActionListener(e -> confermaOre(serializzazione));
 
         pannelloBottoni.add(bottoneIndietro);
         pannelloBottoni.add(bottoneConferma);
@@ -226,28 +167,18 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         conteggioLabel.setForeground(COLORE_PRIMARIO);
         pannelloBottoni.add(conteggioLabel);
 
-        this.add(pannelloBottoni, BorderLayout.SOUTH);
-
-        aggiornaLista();
-        this.setVisible(true);
+        return pannelloBottoni;
     }
 
-    private void mostraMessaggioErrore(String messaggio) {
-        Color coloreMessaggioOriginale = UIManager.getColor("OptionPane.messageForeground");
-        Color colorePulsanteOriginale = UIManager.getColor("Button.foreground");
-
-        UIManager.put("OptionPane.messageForeground", Color.BLACK);
-        UIManager.put("Button.foreground", Color.BLACK);
-
-        JOptionPane.showMessageDialog(this, messaggio, "Attenzione", JOptionPane.ERROR_MESSAGE);
-
-        UIManager.put("OptionPane.messageForeground", coloreMessaggioOriginale);
-        UIManager.put("Button.foreground", colorePulsanteOriginale);
+    private void aggiornaRicerca() {
+        salvaOreAssegnate();
+        String testo = campoRicerca.getText();
+        if (!testo.equals("Cerca per cognome...")) {
+            filtra(testo);
+        }
     }
 
     private void filtra(String stringa) {
-        salvaOreAssegnate();
-
         String q = stringa == null ? "" : stringa.trim().toLowerCase();
         docentiFiltrati.clear();
 
@@ -273,7 +204,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
 
     private void aggiornaLista() {
         panelCentro.removeAll();
-        oreFields.clear(); // reset lista campi ore
+        oreFields.clear();
 
         if (docentiFiltrati.isEmpty()) {
             JLabel nessunRisultato = new JLabel("Nessun docente trovato", SwingConstants.CENTER);
@@ -284,50 +215,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         } else {
             for (int i = 0; i < docentiFiltrati.size(); i++) {
                 Docente doc = docentiFiltrati.get(i);
-
-                JPanel rigaDocente = new JPanel(new BorderLayout());
-                rigaDocente.setBackground(COLORE_SFONDO);
-                rigaDocente.setBorder(new EmptyBorder(5, 0, 5, 0));
-                rigaDocente.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-
-                JLabel nomeLabel = new JLabel((i + 1) + ") " + doc.getCognome());
-                nomeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-                nomeLabel.setForeground(COLORE_TESTO);
-
-                // pannello a destra con -  [ore]  +
-                JPanel controlloPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-                controlloPanel.setBackground(COLORE_SFONDO);
-
-                JButton meno = new JButton("-");
-                meno.setPreferredSize(new Dimension(40, 28));
-                meno.setActionCommand("MINUS_" + i);
-                meno.addActionListener(this);
-                meno.setFocusPainted(false);
-                meno.setForeground(Color.BLACK);
-                meno.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-                // Recupera le ore precedentemente assegnate a questo docente
-                int orePrecedenti = oreAssegnate.getOrDefault(doc, 0);
-
-                JTextField oreField = new JTextField(String.valueOf(orePrecedenti));
-                oreField.setPreferredSize(new Dimension(60, 28));
-                oreField.setHorizontalAlignment(SwingConstants.CENTER);
-                oreField.setActionCommand("OREFIELD_" + i);
-                oreField.setEnabled(false);
-                JButton piu = new JButton("+");
-                piu.setPreferredSize(new Dimension(40, 28));
-                piu.setActionCommand("PLUS_" + i);
-                piu.addActionListener(this);
-                piu.setFocusPainted(false);
-                piu.setForeground(Color.BLACK);
-                piu.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-                controlloPanel.add(meno);
-                controlloPanel.add(oreField);
-                controlloPanel.add(piu);
-
-                rigaDocente.add(nomeLabel, BorderLayout.WEST);
-                rigaDocente.add(controlloPanel, BorderLayout.EAST);
+                JPanel rigaDocente = creaRigaDocente(doc, i);
                 panelCentro.add(rigaDocente);
 
                 if (i < docentiFiltrati.size() - 1) {
@@ -335,8 +223,6 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
                     separator.setForeground(Color.LIGHT_GRAY);
                     panelCentro.add(separator);
                 }
-
-                oreFields.add(oreField);
             }
         }
 
@@ -346,13 +232,91 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         aggiornaPannelloConteggio();
     }
 
-    private int contaSelezionati() {
-        int count = 0;
-        for (JTextField f : oreFields) {
-            int val = parseOre(f.getText());
-            if (val > 0) count++;
+    private JPanel creaRigaDocente(Docente doc, int index) {
+        JPanel rigaDocente = new JPanel(new BorderLayout());
+        rigaDocente.setBackground(COLORE_SFONDO);
+        rigaDocente.setBorder(new EmptyBorder(5, 0, 5, 0));
+        rigaDocente.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        JLabel nomeLabel = new JLabel((index + 1) + ") " + doc.getCognome());
+        nomeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        nomeLabel.setForeground(COLORE_TESTO);
+
+        JPanel controlloPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        controlloPanel.setBackground(COLORE_SFONDO);
+
+        JButton meno = creaBottoneOre("-", "MINUS_" + index);
+        JTextField oreField = creaCampoOre(doc, index);
+        JButton piu = creaBottoneOre("+", "PLUS_" + index);
+
+        controlloPanel.add(meno);
+        controlloPanel.add(oreField);
+        controlloPanel.add(piu);
+
+        rigaDocente.add(nomeLabel, BorderLayout.WEST);
+        rigaDocente.add(controlloPanel, BorderLayout.EAST);
+
+        oreFields.add(oreField);
+        return rigaDocente;
+    }
+
+    private JButton creaBottoneOre(String testo, String comando) {
+        JButton bottone = new JButton(testo);
+        bottone.setPreferredSize(new Dimension(40, 28));
+        bottone.setActionCommand(comando);
+        bottone.addActionListener(this);
+        bottone.setFocusPainted(false);
+        bottone.setForeground(Color.BLACK);
+        bottone.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return bottone;
+    }
+
+    private JTextField creaCampoOre(Docente doc, int index) {
+        int orePrecedenti = oreAssegnate.getOrDefault(doc, 0);
+        JTextField oreField = new JTextField(String.valueOf(orePrecedenti));
+        oreField.setPreferredSize(new Dimension(60, 28));
+        oreField.setHorizontalAlignment(SwingConstants.CENTER);
+        oreField.setActionCommand("OREFIELD_" + index);
+        oreField.setEnabled(false);
+        return oreField;
+    }
+
+    private void confermaOre(Serializzazione serializzazione) {
+        int selezionati = contaSelezionati();
+        if (selezionati > 0) {
+            Object[] options = {"Conferma", "Indietro"};
+            int scelta = JOptionPane.showOptionDialog(
+                    this,
+                    "Confermi il numero di ore assegnato a " + selezionati + " docenti?",
+                    "Conferma",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    options,
+                    options[0]
+            );
+            if (scelta == JOptionPane.YES_OPTION) {
+                for(Docente docente : docenti){
+                    int oreDirecupero = oreAssegnate.get(docente);
+                    docente.impostaOreDaRecuperare(oreDirecupero);
+                }
+                serializzazione.salvaDati();
+                dispose();
+            }
+        } else {
+            mostraMessaggioErrore("Nessun docente selezionato (ore > 0).");
         }
-        return count;
+    }
+
+    private void mostraMessaggioErrore(String messaggio) {
+        JOptionPane.showMessageDialog(this, messaggio, "Attenzione", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private int contaSelezionati() {
+        return (int) oreFields.stream()
+                .map(f -> parseOre(f.getText()))
+                .filter(val -> val > 0)
+                .count();
     }
 
     private int parseOre(String s) {
@@ -361,7 +325,7 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         if (s.isEmpty()) return 0;
         try {
             int v = Integer.parseInt(s);
-            return Math.max(0, v); // non-negative
+            return Math.max(0, v);
         } catch (NumberFormatException ex) {
             return 0;
         }
@@ -383,18 +347,10 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         bottone.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 bottone.setBackground(coloreSfondo.brighter());
-                bottone.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(coloreSfondo.brighter().darker(), 2),
-                        BorderFactory.createEmptyBorder(8, 16, 8, 16)
-                ));
             }
 
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 bottone.setBackground(coloreSfondo);
-                bottone.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(coloreSfondo.darker(), 2),
-                        BorderFactory.createEmptyBorder(8, 16, 8, 16)
-                ));
             }
         });
 
@@ -412,7 +368,6 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
         String cmd = e.getActionCommand();
         if (cmd == null) return;
 
-        // gestisce +/- con actionCommand "PLUS_i" o "MINUS_i"
         if (cmd.startsWith("PLUS_") || cmd.startsWith("MINUS_")) {
             String[] parts = cmd.split("_");
             if (parts.length == 2) {
@@ -427,19 +382,15 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
                             val = Math.max(0, val - 1);
                         }
                         f.setText(String.valueOf(val));
-                        // Aggiorna immediatamente la mappa delle ore assegnate
                         if (idx < docentiFiltrati.size()) {
                             Docente docente = docentiFiltrati.get(idx);
                             oreAssegnate.put(docente, val);
                         }
                         aggiornaPannelloConteggio();
                     }
-                } catch (NumberFormatException ex) {
-                    // ignoriamo indici non validi
-                }
+                } catch (NumberFormatException ex) {}
             }
         } else if (cmd.startsWith("OREFIELD_")) {
-            // Aggiorna la mappa quando il campo ore viene modificato manualmente
             String[] parts = cmd.split("_");
             if (parts.length == 2) {
                 try {
@@ -449,13 +400,8 @@ public class InterfacciaGestioneOreRecupero extends JFrame implements ActionList
                         int ore = parseOre(oreFields.get(idx).getText());
                         oreAssegnate.put(docente, ore);
                     }
-                } catch (NumberFormatException ex) {
-                    // ignoriamo indici non validi
-                }
+                } catch (NumberFormatException ex) {}
             }
-            aggiornaPannelloConteggio();
-        } else if (cmd.isEmpty()) {
-            // possibile ActionEvent dal campo ricerca
             aggiornaPannelloConteggio();
         }
     }

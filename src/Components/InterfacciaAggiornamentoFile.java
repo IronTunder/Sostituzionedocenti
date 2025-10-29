@@ -9,31 +9,25 @@ import java.awt.*;
 public class InterfacciaAggiornamentoFile extends JFrame {
     private final Color coloreSfondo = new Color(245, 248, 250);
     private final Color coloreBlu = new Color(70, 130, 180);
-    private final Color coloreBluScuro = new Color(60, 110, 160);
     private final Color coloreRosso = new Color(200, 70, 80);
-
-    private JPanel pannelloTitolo;
-    private JPanel pannelloBottoni;
-    private JPanel pannelloInfoFile;
-    private JLabel labelFileSelezionato;
-    private JButton bottoneCambiaFile;
-
-    private final Font fontTitolo = new Font("Segoe UI", Font.BOLD, 24);
-    private final Font fontSottotitolo = new Font("Segoe UI", Font.PLAIN, 14);
-    private final Font fontBottoni = new Font("Segoe UI", Font.BOLD, 14);
-    private final Font fontInfo = new Font("Segoe UI", Font.ITALIC, 12);
 
     private final Serializzazione serializzazione;
     private final GestoreDati gestoreDati;
+
     public InterfacciaAggiornamentoFile(GestoreDati gestoreDati, Serializzazione serializzazione) {
         this.serializzazione = serializzazione;
         this.gestoreDati = gestoreDati;
+
         setTitle("Aggiornamento File - Gestione Orario Scolastico");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(800, 550);
         setLocationRelativeTo(null);
         setResizable(false);
+        try{
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }catch (Exception e){
 
+        }
         pannelloPrincipale();
         setVisible(true);
     }
@@ -43,39 +37,38 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         pannelloPrincipale.setBackground(coloreSfondo);
         pannelloPrincipale.setBorder(new EmptyBorder(20, 40, 20, 40));
 
-        creaPannelloTitolo();
-        creaPannelloInfoFile();
-        creaPannelloBottoni();
-
-        pannelloPrincipale.add(pannelloTitolo, BorderLayout.NORTH);
-        pannelloPrincipale.add(pannelloInfoFile, BorderLayout.CENTER);
-        pannelloPrincipale.add(pannelloBottoni, BorderLayout.SOUTH);
+        pannelloPrincipale.add(creaPannelloTitolo(), BorderLayout.NORTH);
+        pannelloPrincipale.add(creaPannelloInfoFile(), BorderLayout.CENTER);
+        pannelloPrincipale.add(creaPannelloBottoni(), BorderLayout.SOUTH);
 
         add(pannelloPrincipale);
     }
 
-    private void creaPannelloTitolo() {
-        pannelloTitolo = new JPanel(new GridLayout(2, 1));
+    private JPanel creaPannelloTitolo() {
+        JPanel pannelloTitolo = new JPanel(new GridLayout(2, 1));
         pannelloTitolo.setBackground(coloreSfondo);
         pannelloTitolo.setBorder(new EmptyBorder(10, 10, 20, 10));
 
         JLabel titolo = new JLabel("AGGIORNAMENTO FILE", SwingConstants.CENTER);
-        titolo.setFont(fontTitolo);
-        titolo.setForeground(coloreBluScuro);
+        titolo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titolo.setForeground(new Color(60, 110, 160));
 
         JLabel sottotitolo = new JLabel("Gestisci e aggiorna i file CSV dell'orario scolastico", SwingConstants.CENTER);
-        sottotitolo.setFont(fontSottotitolo);
+        sottotitolo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         sottotitolo.setForeground(Color.GRAY);
 
         pannelloTitolo.add(titolo);
         pannelloTitolo.add(sottotitolo);
+
+        return pannelloTitolo;
     }
 
-    private void creaPannelloInfoFile() {
-        pannelloInfoFile = new JPanel(new BorderLayout());
+    private JPanel creaPannelloInfoFile() {
+        JPanel pannelloInfoFile = new JPanel(new BorderLayout());
         pannelloInfoFile.setBackground(coloreSfondo);
         pannelloInfoFile.setBorder(new EmptyBorder(10, 50, 20, 50));
-        bottoneCambiaFile = new JButton("Cambia File Selezionato");
+
+        JButton bottoneCambiaFile = new JButton("Cambia File Selezionato");
         bottoneCambiaFile.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         bottoneCambiaFile.setForeground(Color.BLACK);
         bottoneCambiaFile.setBackground(new Color(100, 149, 237));
@@ -96,45 +89,46 @@ public class InterfacciaAggiornamentoFile extends JFrame {
 
         bottoneCambiaFile.addActionListener(e -> cambiaFileSelezionato());
 
-
         JPanel pannelloBottoneCambio = new JPanel(new FlowLayout());
         pannelloBottoneCambio.setBackground(coloreSfondo);
         pannelloBottoneCambio.add(bottoneCambiaFile);
 
         pannelloInfoFile.add(pannelloBottoneCambio, BorderLayout.SOUTH);
-
+        return pannelloInfoFile;
     }
 
-    private void creaPannelloBottoni() {
-        pannelloBottoni = new JPanel(new GridLayout(4, 1, 15, 15));
+    private JPanel creaPannelloBottoni() {
+        JPanel pannelloBottoni = new JPanel(new GridLayout(4, 1, 15, 15));
         pannelloBottoni.setBackground(coloreSfondo);
         pannelloBottoni.setBorder(new EmptyBorder(20, 200, 20, 200));
 
         JButton bottoneDisposizioni = creaPulsante("Aggiorna Disposizioni", new Color(100, 149, 237));
-        JButton bottoneClassiEDocenti = creaPulsante("Aggiorna Orario Classi e Docenti", new Color(72, 187, 120));
+        JButton bottoneClassi = creaPulsante("Aggiorna Orario Classi", new Color(72, 187, 120));
         JButton bottoneIndietro = creaPulsante("Indietro", coloreRosso);
 
-        pannelloBottoni.add(bottoneDisposizioni);
-        pannelloBottoni.add(bottoneClassiEDocenti);
-        pannelloBottoni.add(bottoneIndietro);
-
         bottoneDisposizioni.addActionListener(e -> {
-            new InterfacciaDisposizioni(gestoreDati,serializzazione);
+            new InterfacciaDisposizioni(gestoreDati, serializzazione);
             dispose();
         });
-        bottoneClassiEDocenti.addActionListener(e -> {
-            new InterfacciaAggiornamentoClassiDocenti(gestoreDati, serializzazione);
+        bottoneClassi.addActionListener(e -> {
+            new InterfacciaAggiornamentoClassi(gestoreDati, serializzazione);
             dispose();
         });
         bottoneIndietro.addActionListener(e -> {
-            new MenuPrincipale(gestoreDati,serializzazione);
+            new MenuPrincipale(gestoreDati, serializzazione);
             dispose();
         });
+
+        pannelloBottoni.add(bottoneDisposizioni);
+        pannelloBottoni.add(bottoneClassi);
+        pannelloBottoni.add(bottoneIndietro);
+
+        return pannelloBottoni;
     }
 
     private JButton creaPulsante(String testo, Color colore) {
         JButton bottone = new JButton(testo);
-        bottone.setFont(fontBottoni);
+        bottone.setFont(new Font("Segoe UI", Font.BOLD, 14));
         bottone.setForeground(Color.BLACK);
         bottone.setBackground(colore);
         bottone.setFocusPainted(false);
@@ -155,13 +149,8 @@ public class InterfacciaAggiornamentoFile extends JFrame {
         return bottone;
     }
 
-    private void aggiornaLabelFileSelezionato(String nomeFile) {
-        labelFileSelezionato.setText(nomeFile);
-    }
-
-
     private void cambiaFileSelezionato() {
-        Object[] options = {"<html><font color=#000000>Si</font></html>","<html><font color=#000000>No</font></html>"};
+        Object[] options = {"Si", "No"};
         int scelta = JOptionPane.showOptionDialog(
                 this,
                 "Vuoi chiudere questa finestra e selezionare un nuovo file?\nTutti i progressi non salvati andranno persi.",
@@ -175,25 +164,12 @@ public class InterfacciaAggiornamentoFile extends JFrame {
 
         if (scelta == JOptionPane.YES_OPTION) {
             serializzazione.eliminaDati();
-            try{
+            try {
                 new InterfacciaSelezioneFile(new GestoreDati(), serializzazione);
-            }catch (Exception e){
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Errore nell'apertura della pagina iniziale: " + e.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
             }
             dispose();
         }
-    }
-
-    private void mostraMessaggio(String testo) {
-        JOptionPane.showMessageDialog(this, testo, "Informazione", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    public void setFileSelezionato(String nomeFile) {
-        aggiornaLabelFileSelezionato(nomeFile);
-    }
-
-
-    public String getFileSelezionato() {
-        return labelFileSelezionato.getText();
     }
 }
