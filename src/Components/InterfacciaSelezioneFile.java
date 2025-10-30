@@ -3,7 +3,6 @@ package Components;
 import Managers.GestoreDati;
 import Managers.LettoreCSV;
 import Managers.Serializzazione;
-import com.opencsv.exceptions.CsvException;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -157,14 +156,13 @@ public class InterfacciaSelezioneFile extends JFrame {
             elaboraFileSelezionato(fileSelezionato);
         }
     }
-
     private void elaboraFileSelezionato(File file) {
         try {
             LettoreCSV lettoreCSV = new LettoreCSV();
             lettoreCSV.leggiFile(file.getAbsolutePath(), gestoreDati, serializzazione);
             serializzazione.salvaDati();
             avviaInterfacciaPrincipale();
-        } catch (IOException | CsvException ex) {
+        } catch (Exception ex) {
             JOptionPane.showMessageDialog(
                     this,
                     "Errore durante il caricamento del file:\n" + ex.getMessage(),
