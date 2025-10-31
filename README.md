@@ -82,24 +82,6 @@ Celle = docenti sostituti
 Possibilità di:
 Visualizzare a schermo
 Esportare in PDF stampabile
-Esempio:
-Ora
-Rossi (assente)
-Bianchi (assente)
-…
-8–9
-Verdi
-–
-
-
-9–10
-–
-Neri
-
-
-…
-…
-…
 
 
 
